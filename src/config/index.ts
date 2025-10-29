@@ -9,6 +9,7 @@ const envSchema = z.object({
     .string()
     .url()
     .default('https://api.football-data.org/v4'),
+  TELEGRAM_BOT_TOKEN: z.string().min(1, 'TELEGRAM_BOT_TOKEN is required'),
 });
 
 const parseEnv = () => {
@@ -33,4 +34,8 @@ export const config = {
     apiKey: env.FOOTBALL_API_KEY,
     baseUrl: env.FOOTBALL_API_BASE_URL,
   },
+  telegram: {
+    botToken: env.TELEGRAM_BOT_TOKEN,
+  },
+  env: 'development' as const,
 } as const;

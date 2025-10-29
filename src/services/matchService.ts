@@ -77,4 +77,14 @@ export class MatchService {
 
     return result;
   }
+
+  async getTeamIds(
+    matchId: number
+  ): Promise<{ homeTeamId: number; awayTeamId: number }> {
+    const response = await this.footballApi.getMatch(matchId);
+    return {
+      homeTeamId: response.homeTeam.id,
+      awayTeamId: response.awayTeam.id,
+    };
+  }
 }
