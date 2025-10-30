@@ -1,12 +1,11 @@
-import { MatchStatus } from '@/api/football-data/constants';
 import { FootballDataMatch } from '@/api/football-data/types';
 
 export interface Match {
   id: number;
   homeTeam: string;
-  homeTeamId: number; // ← Добавь
+  homeTeamId: number;
   awayTeam: string;
-  awayTeamId: number; // ← Добавь
+  awayTeamId: number;
   date: Date;
   status: string;
   competition: string;
@@ -23,9 +22,9 @@ export function mapToMatch(apiMatch: FootballDataMatch): Match {
   return {
     id: apiMatch.id,
     homeTeam: apiMatch.homeTeam.name,
-    homeTeamId: apiMatch.homeTeam.id, // ← Добавь
+    homeTeamId: apiMatch.homeTeam.id,
     awayTeam: apiMatch.awayTeam.name,
-    awayTeamId: apiMatch.awayTeam.id, // ← Добавь
+    awayTeamId: apiMatch.awayTeam.id,
     date: new Date(apiMatch.utcDate),
     status: apiMatch.status,
     competition: apiMatch.competition.name,

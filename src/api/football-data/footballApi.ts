@@ -5,6 +5,7 @@ import {
   FootballDataMatch,
   TeamMatchesResponse,
 } from './types';
+import { StandingsResponse } from '@/types/standings.types';
 
 export class FootballDataClient {
   private client: AxiosInstance;
@@ -91,15 +92,40 @@ export class FootballDataClient {
     return response.data;
   }
 
-  async getStandings(competitionCode: string) {
-    const response = await this.client.get(
-      `/competitions/${competitionCode}/standings`
-    );
+  async getCompetitions() {
+    const response = await this.client.get('/competitions');
     return response.data;
   }
 
-  async getCompetitions() {
-    const response = await this.client.get('/competitions');
+  async getHeadToHead(
+    matchId: number,
+    limit: number = 10
+  ): Promise<{
+    matches: FootballDataMatch[];
+  }> {
+    const endpoint = `/matches/${matchId}/head2head`;
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+    });
+
+    const response = await this.client.get(`${endpoint}?${params}`);
+    return response.data;
+  }
+
+  async getStandings(
+    competitionCode: string,
+    season?: number
+  ): Promise<StandingsResponse> {
+    const endpoint = `/competitions/${competitionCode}/standings`;
+    const params = new URLSearchParams();
+
+    if (season) {
+      params.append('season', season.toString());
+    }
+
+    const response = await this.client.get(
+      `${endpoint}${params.toString() ? '?' + params : ''}`
+    );
     return response.data;
   }
 }
