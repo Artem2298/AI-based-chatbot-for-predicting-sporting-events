@@ -23,7 +23,6 @@ prisma/*.db-journal
 coverage/
 
 # Misc
-.antigravity/
 csv_data/
 tip.py
 .tip.py
