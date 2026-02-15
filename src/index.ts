@@ -1,29 +1,43 @@
-import { bot } from './bot/bot';
+import { bot, syncService } from './bot/bot';
 import { config } from './config';
+import { DbService } from './services/dbService';
+import { createLogger } from '@/utils/logger';
+
+const log = createLogger('app');
 
 async function main() {
-  console.log('🚀 Starting AI Sport Prediction Bot...');
-  console.log(`📍 Environment: ${config.env}`);
-  console.log('✅ Bot is running!');
-  console.log('🛑 Press Ctrl+C to stop');
+  log.info({ env: config.env }, 'starting AI Sport Prediction Bot');
+
+  await DbService.connect();
+  syncService.scheduleDailySync();
+
+  // Initial sync + monitoring (non-blocking)
+  syncService.syncUpcomingMatches()
+    .then(() => syncService.scheduleMatchMonitoring())
+    .catch((err) => log.error({ err }, 'initial sync failed'));
+
+  log.info('bot is running');
 
   await bot.start();
 }
 
-process.once('SIGINT', () => {
-  console.log('\n🛑 Stopping bot...');
+process.once('SIGINT', async () => {
+  log.info('received SIGINT, shutting down');
+  syncService.stopSchedule();
   bot.stop();
+  await DbService.disconnect();
   process.exit(0);
 });
 
-process.once('SIGTERM', () => {
-  console.log('\n🛑 Stopping bot...');
+process.once('SIGTERM', async () => {
+  log.info('received SIGTERM, shutting down');
+  syncService.stopSchedule();
   bot.stop();
+  await DbService.disconnect();
   process.exit(0);
 });
 
-// Запуск
 main().catch((error) => {
-  console.error('❌ Failed to start bot:', error);
+  log.fatal({ err: error }, 'failed to start bot');
   process.exit(1);
 });

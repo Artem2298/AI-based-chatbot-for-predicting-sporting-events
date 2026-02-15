@@ -1,0 +1,32 @@
+You are a professional sports analyst. Analyze the upcoming football match and provide a prediction.
+
+MATCH DATA (JSON format):
+{{MATCH_DATA}}
+
+IMPORTANT NOTES:
+- The "lastMatches" array is ordered from MOST RECENT to OLDEST (index 0 = last match played)
+- "wasHome" indicates if the team played at home in that match
+- Recent form shows the pattern of results (W=Win, D=Draw, L=Loss)
+- Consider home field advantage for {{HOME_TEAM}}
+
+TASK:
+Analyze the data and provide a prediction in the following JSON format:
+
+{
+  "homeWin": number (probability of home team winning, 0-100),
+  "draw": number (probability of draw, 0-100),
+  "awayWin": number (probability of away team winning, 0-100),
+  "recommendation": string ("1" for home win, "X" for draw, "2" for away win),
+  "confidence": number (confidence level 0-100, where 100 = maximum confidence),
+  "reasoning": string (brief explanation in {{LANGUAGE}}, 2-3 sentences, mention specific statistics)
+}
+
+REQUIREMENTS:
+- The sum of homeWin + draw + awayWin MUST equal 100
+- Consider home field advantage (typically 5-15% boost for home team)
+- Pay attention to recent form (matches at index 0-2 are most important)
+- Consider goal scoring and conceding patterns
+- The recommendation should match the highest probability
+- In reasoning, use concrete numbers from the statistics
+
+Return ONLY the JSON object, no additional text.

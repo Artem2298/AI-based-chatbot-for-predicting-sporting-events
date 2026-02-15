@@ -1,3 +1,47 @@
+export interface TeamStatistics {
+  corner_kicks?: number;
+  free_kicks?: number;
+  goal_kicks?: number;
+  offsides?: number;
+  fouls?: number;
+  ball_possession?: number;
+  saves?: number;
+  throw_ins?: number;
+  shots?: number;
+  shots_on_goal?: number;
+  shots_off_goal?: number;
+  yellow_cards?: number;
+  yellow_red_cards?: number;
+  red_cards?: number;
+}
+
+export interface Player {
+  id: number;
+  name: string;
+  position: string;
+  shirtNumber: number;
+}
+
+export interface Coach {
+  id: number;
+  name: string;
+  nationality: string;
+}
+
+export interface ExtendedTeam {
+  id: number;
+  name: string;
+  shortName: string;
+  tla: string;
+  crest: string;
+  coach?: Coach;
+  leagueRank?: number | null;
+  formation?: string | null;
+  lineup?: Player[];
+  bench?: Player[];
+  statistics?: TeamStatistics;
+}
+
 export interface FootballDataResponse {
   filters: {
     season: string;
@@ -38,7 +82,7 @@ export interface FootballDataMatch {
     startDate: string;
     endDate: string;
     currentMatchday: number;
-    winner: null | any;
+    winner: null;
   };
   id: number;
   utcDate: string;
@@ -47,20 +91,10 @@ export interface FootballDataMatch {
   stage: string;
   group: null | string;
   lastUpdated: string;
-  homeTeam: {
-    id: number;
-    name: string;
-    shortName: string;
-    tla: string;
-    crest: string;
-  };
-  awayTeam: {
-    id: number;
-    name: string;
-    shortName: string;
-    tla: string;
-    crest: string;
-  };
+
+  homeTeam: ExtendedTeam;
+  awayTeam: ExtendedTeam;
+
   score: {
     winner: null | string;
     duration: string;
@@ -76,15 +110,18 @@ export interface FootballDataMatch {
   odds: {
     msg: string;
   };
-  referees: any[];
+  referees: Referee[];
 }
 
-// ========================================
-// Team Statistics Response
-// ========================================
+export interface Referee {
+  id: number;
+  name: string;
+  type: string;
+  nationality: string;
+}
 
 export interface TeamMatchesResponse {
-  filters: any;
+  filters: unknown;
   resultSet: {
     count: number;
     first: string;

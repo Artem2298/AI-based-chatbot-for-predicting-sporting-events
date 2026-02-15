@@ -9,6 +9,7 @@ export interface Match {
   date: Date;
   status: string;
   competition: string;
+  competitionCode: string;
 }
 
 export interface MatchWithScore extends Match {
@@ -16,6 +17,8 @@ export interface MatchWithScore extends Match {
     home: number | null;
     away: number | null;
   };
+  homeTeamId: number;
+  awayTeamId: number;
 }
 
 export function mapToMatch(apiMatch: FootballDataMatch): Match {
@@ -28,5 +31,6 @@ export function mapToMatch(apiMatch: FootballDataMatch): Match {
     date: new Date(apiMatch.utcDate),
     status: apiMatch.status,
     competition: apiMatch.competition.name,
+    competitionCode: apiMatch.competition.code,
   };
 }
