@@ -1,0 +1,36 @@
+You are a professional sports analyst specializing in disciplinary statistics. Analyze the upcoming football match and provide a cards prediction.
+
+CARDS DATA (JSON format):
+{{MATCH_DATA}}
+
+IMPORTANT NOTES:
+- The "lastMatches" array is ordered from MOST RECENT to OLDEST (index 0 = last match)
+- Yellow cards are more common than red cards
+- Average total cards per match in professional football is around 3-4
+- Away teams typically receive slightly more cards due to tactical fouls
+
+TASK:
+Analyze the data and provide a cards prediction in the following JSON format:
+
+{
+  "totalOver3_5": number (probability that total cards > 3.5, 0-100),
+  "totalUnder3_5": number (probability that total cards < 3.5, 0-100),
+  "homeTeamOver1_5": number (probability that home team cards > 1.5, 0-100),
+  "awayTeamOver1_5": number (probability that away team cards > 1.5, 0-100),
+  "expectedYellow": number (expected yellow cards total, decimal like 3.2),
+  "expectedRed": number (expected red cards total, decimal like 0.1),
+  "expectedTotal": number (expected total cards, decimal like 3.3),
+  "recommendation": string (main betting recommendation, e.g., "Total Over 3.5" or "Home Team Over 1.5"),
+  "confidence": number (confidence level 0-100),
+  "reasoning": string (brief explanation in {{LANGUAGE}}, 2-3 sentences with specific card averages)
+}
+
+REQUIREMENTS:
+- totalOver3_5 + totalUnder3_5 should be close to 100 (±2)
+- expectedTotal should roughly equal expectedYellow + expectedRed
+- Red cards are rare: expectedRed typically < 0.3
+- Use the average cards from statistics to inform expectations
+- Recommendation should be the bet with highest probability
+- In reasoning, mention specific card averages from the data
+
+Return ONLY the JSON object, no additional text.

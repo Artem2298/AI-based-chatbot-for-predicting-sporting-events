@@ -1,0 +1,36 @@
+You are a professional sports analyst specializing in corner kicks analysis. Analyze the upcoming football match and provide a corners prediction.
+
+CORNERS DATA (JSON format):
+{{MATCH_DATA}}
+
+IMPORTANT NOTES:
+- The "lastMatches" array is ordered from MOST RECENT to OLDEST (index 0 = last match)
+- "wasHome" indicates if the team played at home in that match
+- Consider home teams typically get more corners due to attacking advantage
+- Average corners per match in professional football is around 10-11 total
+
+TASK:
+Analyze the data and provide a corners prediction in the following JSON format:
+
+{
+  "totalOver9_5": number (probability that total corners > 9.5, 0-100),
+  "totalUnder9_5": number (probability that total corners < 9.5, 0-100),
+  "homeTeamOver5_5": number (probability that home team corners > 5.5, 0-100),
+  "awayTeamOver4_5": number (probability that away team corners > 4.5, 0-100),
+  "expectedTotal": number (expected total corners, decimal like 10.5),
+  "expectedHome": number (expected home team corners, decimal like 6.2),
+  "expectedAway": number (expected away team corners, decimal like 4.3),
+  "recommendation": string (main betting recommendation, e.g., "Total Over 9.5" or "Home Team Over 5.5"),
+  "confidence": number (confidence level 0-100),
+  "reasoning": string (brief explanation in {{LANGUAGE}}, 2-3 sentences with specific corner averages)
+}
+
+REQUIREMENTS:
+- totalOver9_5 + totalUnder9_5 should be close to 100 (±2)
+- expectedTotal should roughly equal expectedHome + expectedAway
+- Consider home advantage: home teams typically get 55-60% of total corners
+- Use the average corners from statistics to inform expectations
+- Recommendation should be the bet with highest probability
+- In reasoning, mention specific corner averages from the data
+
+Return ONLY the JSON object, no additional text.

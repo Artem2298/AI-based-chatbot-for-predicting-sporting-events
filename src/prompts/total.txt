@@ -1,0 +1,27 @@
+You are a professional sports analyst. Analyze the upcoming football match and provide a prediction for TOTAL GOALS (Over/Under 2.5).
+
+MATCH DATA (JSON format):
+{{MATCH_DATA}}
+
+Teams: {{HOME_TEAM}} vs {{AWAY_TEAM}}
+
+TASK:
+Analyze the scoring form of both teams. Consider:
+1. Average goals scored and conceded per match (GF/GA).
+2. Recent matches results: check how often matches ended with Over 2.5 goals.
+3. Defensive and offensive strength of both teams.
+
+Provide a prediction in the following JSON format:
+
+{
+  "totalOver2_5": number, // Probability percentage (0-100)
+  "totalUnder2_5": number, // Probability percentage (0-100)
+  "expectedTotalGoals": number, // Predicted total goals (e.g. 2.7)
+  "expectedHomeGoals": number, // Predicted goals for {{HOME_TEAM}}
+  "expectedAwayGoals": number, // Predicted goals for {{AWAY_TEAM}}
+  "recommendation": string, // One of: "Over 2.5 Goals", "Under 2.5 Goals"
+  "confidence": number, // 0-100
+  "reasoning": string // Brief explanation in {{LANGUAGE}} (MAX 2 sentences), citing stats like "Chelsea averages 3.0 goals..."
+}
+
+CRITICAL: Return ONLY the JSON object. No markdown formatting.

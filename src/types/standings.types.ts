@@ -49,7 +49,7 @@ export interface StandingsResponse {
     startDate: string;
     endDate: string;
     currentMatchday: number;
-    winner: any | null;
+    winner: null;
   };
   standings: Standing[];
 }

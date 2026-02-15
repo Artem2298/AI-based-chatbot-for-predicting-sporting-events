@@ -1,0 +1,130 @@
+Архитектура:
+1. In-memory состояние (userMatchesState) — критическая слабость:
+matchHandler.ts:11-18 — глобальный Map<number, {...}> хранит состояние сессий в памяти процесса. При перезапуске бота все сессии теряются. При масштабировании на несколько инстансов — полная рассинхронизация. Нет механизма очистки — потенциальная утечка памяти при большом количестве пользователей.
+2. Дублирование функции getMatchIndex и showLeagueSelection:
+getMatchIndex() продублирована в predictionHandler.ts:173 и statsHandler.ts:309 — идентичная логика.
+showLeagueSelection() дублируется в matchHandler.ts:169 и paginationHandler.ts:49.
+3. Graceful shutdown частично реализован:
+index.ts:18-30 — SIGINT/SIGTERM обработаны, БД отключается. Однако:
+Нет ожидания завершения текущих запросов к Gemini API
+process.exit(0) в async callback — может не дождаться await DbService.disconnect()
+4. Связанность predictionService ↔ db:
+predictionService.ts:1 — сервис напрямую импортирует db и делает запросы к Prisma, вместо того чтобы получать репозиторий через DI. Это усложняет тестирование и нарушает принцип единообразия (matchService получает зависимости через конструктор, а predictionService — частично через import).
+
+
+КОДОВАЯ БАЗА:
+1. Чрезмерное использование any:
+predictionService.ts:467-469 — statsCalculator: (data: PredictionData) => any, promptBuilder: ... => any, validator: (prediction: any) => void — generic-метод, но с потерей типобезопасности
+predictionFormatter.ts:6-9 — match: any, prediction: any — вся типизация потеряна на уровне форматирования
+cacheService.ts:2 — data: any — кэш полностью нетипизирован, get() возвращает any
+matchService.ts:83 — as any при маппинге DB → API формат
+2. Задержка в 40 секунд:
+predictionService.ts:161 — await new Promise((r) => setTimeout(r, 40000)) — хардкод 40-секундной задержки между запросами для rate limiting. Пользователь ждёт ответ > 2 минут на прогноз corners/cards/offsides. Это архитектурная проблема, нужен адаптивный rate limiter.
+3. Закомментированный код:
+predictionService.ts:27 — // private static readonly PREDICTION_TTL = 5 * 60 * 1000; // 6 часов — оставленный debug-вариант с неправильным комментарием (5 мин ≠ 6 часов).
+4. Опечатка в коде:
+cacheService.ts:16 — 'We dont have a key in this cashe' — опечатка "cashe" → "cache", и это debug-лог уровня console.log который засоряет вывод.
+5. Хардкод дат в formatters:
+formatters.ts:5 — 'ru-RU' хардкод, не учитывает locale пользователя. У бота 6 языков, но даты всегда в русском формате.
+
+
+Технологии:
+1. Express v5 в зависимостях, но не используется:
+package.json:25 — "express": "^5.1.0" + "@types/express" — мёртвый код, увеличивает размер node_modules. Нет ни одного файла, который импортирует express.
+2. Два Google AI пакета:
+package.json:19-20 — @google/genai И @google/generative-ai — используется только @google/genai, второй — лишний.
+3. React-плагин ESLint для бэкенд-проекта:
+package.json:39 — eslint-plugin-react — нет ни одного React-компонента.
+4. process.cwd() для путей к файлам:
+promptLoader.ts:15 и bot.ts:31 — зависимость от process.cwd(). При запуске из другой директории (docker, CI) пути могут не совпадать. Лучше использовать __dirname.
+
+
+БАЗА ДАННЫХ:
+1. Отсутствуют индексы:
+schema.prisma — нет @@index ни на одном поле. Для таблицы Match:
+homeTeamId и awayTeamId — используются в JOIN, но не индексированы
+competitionCode — используется для фильтрации, но не индексирован
+utcDate — используется для сортировки/фильтрации по дате
+Для UserPrediction:
+userId — частые запросы по пользователю, но без индекса
+2. Модель User имеет Int @id @default(autoincrement()), но в промте описан String @id @default(uuid()):
+Реальная схема (schema.prisma:18) — Int. Это несовпадение с типом userId в PredictionService, где userId передаётся как number, что корректно.
+3. Нет firstName/lastName в модели User:
+В реальной схеме нет полей firstName и lastName, хотя Telegram предоставляет эти данные. startHandler не сохраняет их.
+4. Нет каскадного удаления:
+При удалении Match связанные Prediction останутся осиротевшими. Нужен onDelete: Cascade.
+
+
+КЭШИРОВАНИЕ:
+1. Memory cache без лимита размера:
+cacheService.ts — Map растёт бесконечно. Expired записи удаляются только при чтении (lazy eviction). Если ключ был записан и никогда не прочитан — он остаётся навсегда. Нет maxSize, нет периодической очистки, нет LRU.
+2. Нет инвалидации при обновлении:
+Если матч обновился в API (статус, счёт) — кэш будет отдавать старые данные до истечения TTL. Нет механизма принудительной инвалидации.
+3. CacheService полностью нетипизирован:
+get() возвращает any — при чтении из кэша теряется вся типизация. Можно передать CacheService<T> как generic.
+
+
+AI-ИНТЕГРАЦИЯ:
+1. Нет retry-логики для Gemini API:
+geminiClient.ts:26-28 — один запрос, при ошибке — сразу throw. Нет retry с exponential backoff. AI API нестабильны — нужен хотя бы 1 retry.
+2. Валидация неполная:
+validateCornersPrediction проверяет наличие полей, но не проверяет что totalOver9_5 + totalUnder9_5 ≈ 100
+validateCardsPrediction — аналогично
+Нигде не проверяется тип (typeof prediction.homeWin === 'number')
+Нет проверки диапазонов (confidence > 100?)
+3. generateJSON хрупкий:
+geminiClient.ts:57-62 — regex-очистка markdown + JSON.parse. Если AI вернёт невалидный JSON — ошибка парсинга. Нет Zod-валидации ответа.
+4. Полный промт + полный ответ логируются в console:
+predictionService.ts:527-531 и predictionService.ts:652-656 — в production это засорение логов и потенциальная утечка данных.
+
+
+БЕЗОПАСНОСТЬ:
+1. Нет rate limiting на уровне бота:
+Любой пользователь может спамить запросами прогнозов, вызывая множество запросов к Gemini API (платный) и football-data API (лимитирован). Нет rateLimit() middleware от grammY.
+2. Нет валидации matchId от пользователя:
+predictionHandler.ts:66 — parseInt(ctx.match[2]) — любой ID передаётся напрямую в API без проверки. Теоретически пользователь может сконструировать callback_data вручную.
+3. Telegram callback_data не подписана:
+Callback-кнопки содержат matchId в открытом виде (predict:12345). Пользователь с модифицированным клиентом может вызвать произвольные callback. Это типично для ботов, но стоит знать.
+4. console.log с API-данными в production:
+Все API-запросы/ответы логируются через interceptors в footballApi.ts:22-44. В production нужен configurable log level.
+
+
+ТЕСТИРОВАНИЕ:
+1. syncService.ts — 0 тестов. Единственный сервис без покрытия.
+2. Нет coverage configuration:
+vitest.config.ts не содержит coverage секции. Нет данных о реальном % покрытия.
+3. Тесты error paths неполные:
+Сетевые ошибки (timeout, connection refused) — не тестируются
+Malformed JSON от AI — не тестируется
+Конкурентные запросы — не тестируются
+4. Хардкод в интеграционном тесте:
+Match ID 538036 захардкожен — тест зависит от внешнего API и конкретных данных.
+5. statsCalculator.test.ts принимает NaN как ожидаемое поведение:
+Пустой массив → goalsFor / 0 → NaN — тест это документирует, но баг не исправлен.
+
+
+ЛОКАЛИЗАЦИЯ:
+1. Форматирование дат игнорирует locale:
+formatters.ts:5 — хардкод 'ru-RU'. Пользователь с en получит даты в русском формате.
+2. Промты генерируют reasoning на языке пользователя, но сами промты на английском:
+Это нормально (AI лучше работает с английскими промтами), но стоит задокументировать.
+3. Опечатка в ru.ftl:
+ru.ftl:86 — predict-title-goals = ГОЛИ И ТБ/ТМ — «ГОЛИ» вместо «ГОЛЫ».
+ru.ftl:106 — predict-expected-title = ОЖИДАЕМЫЕ ЗНАЧЕННЯ: — «ЗНАЧЕННЯ» (украинский) вместо «ЗНАЧЕНИЯ».
+4. predict-goals-over/predict-goals-under не параметризованы:
+ru.ftl:101-102 — Тотал больше 2.5: — хардкод 2.5. Но эти же ключи используются для corners (9.5) и cards (3.5). В predictionFormatter значение передаётся через { val }, но в ru.ftl ключи содержат хардкод 2.5.
+
+
+Топ-5 критических улучшений:
+1. Добавить rate limiting — middleware @grammyjs/ratelimiter для защиты от спама и расходов на Gemini API
+2. Убрать хардкод задержки 40 секунд — заменить на адаптивный rate limiter или убрать fetchDetails для corners/cards/offsides, используя кэшированные данные
+3. Заменить in-memory userMatchesState на сессии grammY (@grammyjs/storage-*) с персистентным хранилищем — это решит утечку памяти и проблемы при рестарте
+4. Добавить retry-логику для Gemini API — exponential backoff с 2-3 попытками
+5. Добавить индексы в Prisma schema — @@index([homeTeamId]), @@index([awayTeamId]), @@index([competitionCode]), @@index([utcDate])
+
+Топ-5 некритических улучшений:
+1. Удалить неиспользуемые зависимости — express, @google/generative-ai, eslint-plugin-react
+2. Типизировать CacheService — CacheService → generic CacheService<T> или хотя бы убрать any из predictionFormatter
+3. Вынести getMatchIndex и showLeagueSelection в общий модуль — устранить дублирование
+4. Исправить опечатки — cashe → cache, ГОЛИ → ГОЛЫ, ЗНАЧЕННЯ → ЗНАЧЕНИЯ
+5. Добавить structured logging (winston/pino) вместо console.log — с уровнями, JSON-форматом, отключением в тестах

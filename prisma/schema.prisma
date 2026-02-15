@@ -10,6 +10,132 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  telegramId    BigInt   @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  locale        String   @default("en")
+  isPremium     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  predictions   UserPrediction[]
+  subscriptions MatchSubscription[]
+}
+
+model Match {
+  id              Int      @id // External API ID
+  utcDate         DateTime
+  status          String
+  homeTeamId      Int
+  awayTeamId      Int
+  scoreHome       Int?
+  scoreAway       Int?
+  competitionCode String
+  competitionName String   @default("Unknown")
+  predictions     Prediction[]
+  subscriptions   MatchSubscription[]
+
+  homeTeam        Team     @relation("HomeMatches", fields: [homeTeamId], references: [id])
+  awayTeam        Team     @relation("AwayMatches", fields: [awayTeamId], references: [id])
+
+  @@index([competitionCode])
+  @@index([status])
+  @@index([utcDate])
+  @@index([status, utcDate])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+model Team {
+  id          Int      @id // External API ID
+  name        String
+  homeMatches Match[]  @relation("HomeMatches")
+  awayMatches Match[]  @relation("AwayMatches")
+}
+
+model Prediction {
+  id        Int      @id @default(autoincrement())
+  matchId   Int
+  type      String   // outcome, corners, cards, offsides, goals
+  locale    String   @default("en")
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userViews UserPrediction[]
+  accuracy  PredictionAccuracy?
+
+  @@unique([matchId, type, locale])
+}
+
+model UserPrediction {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  predictionId Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+  viewCount    Int      @default(1)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prediction Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, predictionId])
+  @@index([userId])
+  @@index([predictionId])
+}
+
+model Standing {
+  id              Int      @id @default(autoincrement())
+  competitionCode String
+  season          Int
+  matchday        Int      @default(0)
+  data            Json
+  updatedAt       DateTime @updatedAt @default(now())
+
+  @@unique([competitionCode, season])
+  @@index([competitionCode])
+}
+
+model MatchSubscription {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  matchId      Int
+  notifiedPre  Boolean  @default(false)
+  notifiedPost Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId])
+}
+
+model PredictionAccuracy {
+  id                    Int      @id @default(autoincrement())
+  predictionId          Int      @unique
+  matchId               Int
+  actualScoreHome       Int
+  actualScoreAway       Int
+  actualTotalGoals      Int
+  outcomeCorrect        Boolean?
+  goalsOverUnderCorrect Boolean?
+  bttsCorrect           Boolean?
+  cornersCorrect        Boolean?
+  cardsCorrect          Boolean?
+  offsidesCorrect       Boolean?
+  createdAt             DateTime @default(now())
+
+  prediction Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
 }

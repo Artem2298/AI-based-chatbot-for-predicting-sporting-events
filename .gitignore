@@ -1,14 +1,30 @@
 node_modules/
-# Keep environment variables out of version control
+dist/
+
+# Environment variables
 .env
 .env.local
 .env.*.local
 
+# IDE / tools
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
 
+# Prisma
 prisma/*.db
 prisma/*.db-journal
+/src/generated
+
+# Test / coverage
+coverage/
+
+# Misc
+.antigravity/
+csv_data/
+tip.py
+.tip.py
+*.log

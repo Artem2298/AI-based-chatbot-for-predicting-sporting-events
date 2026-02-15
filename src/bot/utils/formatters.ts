@@ -1,23 +1,35 @@
 import { Match, MatchWithScore } from '@/types/match.types';
 
-// Форматировать дату
+const LOCALE_MAP: Record<string, string> = {
+  ru: 'ru-RU',
+  uk: 'uk-UA',
+  en: 'en-GB',
+  cs: 'cs-CZ',
+  sk: 'sk-SK',
+  pl: 'pl-PL',
+};
+
+let currentLocale = 'ru-RU';
+
+export function setFormatterLocale(langCode: string): void {
+  currentLocale = LOCALE_MAP[langCode] || 'en-GB';
+}
+
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('ru-RU', {
+  return date.toLocaleDateString(currentLocale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 }
 
-// Форматировать время
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('ru-RU', {
+  return date.toLocaleTimeString(currentLocale, {
     hour: '2-digit',
     minute: '2-digit',
   });
 }
 
-// Форматировать список матчей с датами
 export function formatMatchesList(
   matches: Match[],
   startIndex: number = 0
@@ -53,7 +65,6 @@ export function formatMatchesList(
   return message;
 }
 
-// Форматировать результат матча
 export function formatMatchResult(match: MatchWithScore): string {
   const { homeTeam, awayTeam, score } = match;
 
@@ -64,7 +75,6 @@ export function formatMatchResult(match: MatchWithScore): string {
   return `${homeTeam} ${score.home}-${score.away} ${awayTeam}`;
 }
 
-// Эмодзи результата (победа/ничья/поражение)
 export function getResultEmoji(
   match: MatchWithScore,
   teamName: string
