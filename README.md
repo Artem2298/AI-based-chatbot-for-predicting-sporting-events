@@ -13,7 +13,7 @@ Telegram bot that provides AI-powered football match predictions, and match noti
 
 ## Features
 
-- Match predictions (outcome, total goals, BTTS, corners, cards, offsides)
+- Match predictions (outcome, total goals, BTTS)
 - Team statistics and head-to-head history
 - League standings (Premier League, Bundesliga, Serie A, La Liga, Ligue 1)
 - Match subscription with pre-match reminders and post-match results
