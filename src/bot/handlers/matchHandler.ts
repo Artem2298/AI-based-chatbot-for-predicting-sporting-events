@@ -54,7 +54,10 @@ export function createMatchComposer(
       let isSubscribed = false;
       const dbUser = await DbService.getUserByTelegramId(ctx.from.id);
       if (dbUser) {
-        isSubscribed = await notificationService.isSubscribed(dbUser.id, match.id);
+        isSubscribed = await notificationService.isSubscribed(
+          dbUser.id,
+          match.id
+        );
       }
 
       let message = `🏟️ **${matchDetails.homeTeam}** vs **${matchDetails.awayTeam}**\n\n`;
@@ -97,7 +100,10 @@ export function createMatchComposer(
         parse_mode: 'Markdown',
       });
     } catch (error) {
-      log.error({ matchId: match.id, err: error }, 'failed to fetch match details');
+      log.error(
+        { matchId: match.id, err: error },
+        'failed to fetch match details'
+      );
       await ctx.reply(ctx.t('error-loading-details') + ' 😔');
     }
   });
@@ -118,7 +124,13 @@ export function createMatchComposer(
     if (state) {
       const matchIndex = state.matches.findIndex((m) => m.id === matchId);
       if (matchIndex !== -1) {
-        await renderMatchDetails(ctx, matchService, notificationService, matchId, state);
+        await renderMatchDetails(
+          ctx,
+          matchService,
+          notificationService,
+          matchId,
+          state
+        );
       }
     }
   });
@@ -139,7 +151,13 @@ export function createMatchComposer(
     if (state) {
       const matchIndex = state.matches.findIndex((m) => m.id === matchId);
       if (matchIndex !== -1) {
-        await renderMatchDetails(ctx, matchService, notificationService, matchId, state);
+        await renderMatchDetails(
+          ctx,
+          matchService,
+          notificationService,
+          matchId,
+          state
+        );
       }
     }
   });
@@ -181,10 +199,7 @@ async function renderMatchDetails(
     message += `🏆 ${matchDetails.competition}\n`;
     message += `🔴 ${ctx.t('status')}: ${matchDetails.status}\n\n`;
 
-    if (
-      matchDetails.score.home !== null &&
-      matchDetails.score.away !== null
-    ) {
+    if (matchDetails.score.home !== null && matchDetails.score.away !== null) {
       message += `⚽ ${ctx.t('score')}: **${matchDetails.score.home} - ${matchDetails.score.away}**\n`;
     } else {
       message += `⚽ ${ctx.t('match-not-started')}\n`;
@@ -281,7 +296,7 @@ export async function showMatchesPage(
   keyboard
     .text(`📊 ${ctx.t('btn-standings')}`, `standings:${leagueCode}`)
     .row();
-  keyboard.text(`◀️ ${ctx.t('btn-back')}`, 'back:main');
+  keyboard.text(`◀️ ${ctx.t('btn-menu')}`, 'back:main');
 
   try {
     await ctx.editMessageText(message, {

@@ -25,8 +25,9 @@ score = Wynik
 match-not-started = Mecz jeszcze się nie rozpoczął
 team-stats = Statystyki drużyn
 get-ai-prediction = Pobierz prognozę AI
-back-to-matches = Do meczów
+back-to-matches = Do listy meczów
 error-loading-details = Błąd podczas ładowania szczegółów
+bet-select = Wybierz prognozę
 
 upcoming-matches = Nadchodzące mecze
 match-click-hint = Kliknij numer meczu, aby zobaczyć szczegóły
@@ -85,17 +86,17 @@ predict-title-offsides = Spalone
 predict-title-total = Summa goli (O/U 2.5)
 predict-title-btts = Obe drużyny strezelą
 
-predict-prob-title = PRAWDOPODOBIEŃSTWO:
+predict-prob-title = PRAWDOPODOBIEŃSTWO
 predict-prob-home = { $team }
 predict-prob-draw = Remis
 predict-prob-away = { $team }
 
-predict-recomm-title = REKOMENDACJA:
+predict-recomm-title = REKOMENDACJA
 predict-recomm-win = Wygrana { $team }
 predict-recomm-draw = Remis
 
-predict-conf-title = PEWNOŚĆ:
-predict-reason-title = UZASADNIENIE:
+predict-conf-title = PEWNOŚĆ
+predict-reason-title = UZASADNIENIE
 predict-disclaimer = Prognoza nie gwarantuje wyniku
 
 predict-goals-over = Razem powyżej { $val }:
@@ -119,10 +120,24 @@ btn-unfollow = Przestań obserwować
 notify-subscribed = Będziesz otrzymywać powiadomienia o tym meczu
 notify-unsubscribed = Powiadomienia wyłączone
 
+notify-pre-match-title = Mecz zaczyna się za 15 minut!
+notify-post-match-title = Mecz zakończony!
+notify-no-predictions = 📋 Nie masz prognoz dla tego meczu
+notify-your-predictions = 📊 Twoje prognozy:
+notify-type-outcome = Wynik
+notify-type-total = Suma goli
+notify-type-btts = Obie strzelą
+notify-type-corners = Rzuty rożne
+notify-type-cards = Kartki
+notify-type-offsides = Spalone
+
 standings-title = Tabela: { $league }
 standings-error = Błąd ładowania tabeli.
 standings-loading = Ładowanie tabeli...
 standings-not-found = Nie znaleziono tabeli
 standings-season = Sezon { $start }/{ $end }
-standings-points = pkt
+standings-points = Punkty
 standings-stats-short = M:{ $played } Z:{ $won } R:{ $draw } P:{ $lost }
+standings-header-form = Forma
+standings-header-goals = Bramki
+standings-header-gd = Różnica bramek

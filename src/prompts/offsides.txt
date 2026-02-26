@@ -3,11 +3,21 @@ You are a professional sports analyst specializing in offsides analysis. Analyze
 OFFSIDES DATA (JSON format):
 {{MATCH_DATA}}
 
+LEAGUE STANDINGS:
+{{STANDINGS}}
+
 IMPORTANT NOTES:
 - The "lastMatches" array is ordered from MOST RECENT to OLDEST (index 0 = last match)
 - Offsides indicate attacking play and high defensive lines
 - Average offsides per match in professional football is around 3-4 total
 - Teams playing with high pressing tend to catch opponents offside more often
+
+EXTERNAL ANALYSIS (use Google Search):
+You have access to Google Search. Use it to find and factor in:
+- Team tactical setup (high defensive line = more offsides for the opponent)
+- Current injuries to fast forwards who are prone to being caught offside
+- Coach tactical preferences regarding defensive line positioning
+Combine this external information with the statistical data provided above.
 
 TASK:
 Analyze the data and provide an offsides prediction in the following JSON format:

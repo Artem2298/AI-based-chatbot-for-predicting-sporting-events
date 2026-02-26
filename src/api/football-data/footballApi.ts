@@ -117,6 +117,14 @@ export class FootballDataClient {
     return response.data;
   }
 
+  async getFinishedMatches(competitionCode: string): Promise<FootballDataResponse> {
+    const response = await this.client.get<FootballDataResponse>(
+      `/competitions/${competitionCode}/matches`,
+      { params: { status: 'FINISHED' } }
+    );
+    return response.data;
+  }
+
   async getMatch(matchId: number): Promise<FootballDataMatch> {
     const response = await this.client.get<FootballDataMatch>(
       `/matches/${matchId}`

@@ -18,6 +18,9 @@ export class GeminiClient {
       const response = await this.ai.models.generateContent({
         model: config.gemini.model,
         contents: prompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
       });
 
       if (!response || !response.text) {
@@ -36,7 +39,7 @@ export class GeminiClient {
 
   async generateJSON(prompt: string): Promise<Record<string, unknown>> {
     try {
-      const jsonPrompt = `${prompt}\n\nВерни ответ ТОЛЬКО в формате JSON, без markdown форматирования, без дополнительного текста.`;
+      const jsonPrompt = `${prompt}\n\nReturn the answer ONLY in JSON format, without markdown formatting, without any additional text.`;
 
       const text = await this.generateText(jsonPrompt);
 

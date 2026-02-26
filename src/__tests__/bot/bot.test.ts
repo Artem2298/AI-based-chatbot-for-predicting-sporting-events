@@ -40,7 +40,7 @@ vi.mock('@/api/football-data/footballApi', () => ({
 }));
 vi.mock('@/services/cacheService', () => ({ CacheService: vi.fn() }));
 vi.mock('@/services/matchService', () => ({ MatchService: vi.fn() }));
-vi.mock('@/services/predictionService', () => ({ PredictionService: vi.fn() }));
+vi.mock('@/services/prediction', () => ({ PredictionService: vi.fn() }));
 vi.mock('@/services/accuracyService', () => ({ AccuracyService: vi.fn() }));
 vi.mock('@/services/syncService', () => ({ SyncService: vi.fn() }));
 vi.mock('@/api/ai/geminiClient', () => ({ geminiClient: {} }));

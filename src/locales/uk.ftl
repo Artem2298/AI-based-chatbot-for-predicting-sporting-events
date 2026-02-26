@@ -25,8 +25,9 @@ score = Рахунок
 match-not-started = Матч ще не почався
 team-stats = Статистика команд
 get-ai-prediction = Отримати AI прогноз
-back-to-matches = До матчів
+back-to-matches = До списку матчів
 error-loading-details = Помилка завантаження деталей
+bet-select = Виберіть прогноз
 
 upcoming-matches = Найближчі матчі
 match-click-hint = Натисни на номер матчу для деталей
@@ -85,17 +86,17 @@ predict-title-offsides = ОФСАЙДИ
 predict-title-total = ТОТАЛ ГОЛІВ (ТБ/ТМ 2.5)
 predict-title-btts = ОБИДВІ ЗАБ'ЮТЬ
 
-predict-prob-title = ЙМОВІРНОСТІ:
+predict-prob-title = ЙМОВІРНОСТІ
 predict-prob-home = { $team }
 predict-prob-draw = Нічия
 predict-prob-away = { $team }
 
-predict-recomm-title = РЕКОМЕНДАЦІЯ:
+predict-recomm-title = РЕКОМЕНДАЦІЯ
 predict-recomm-win = Перемога { $team }
 predict-recomm-draw = Нічия
 
-predict-conf-title = ВПЕВНЕНІСТЬ:
-predict-reason-title = ОБҐРУНТУВАННЯ:
+predict-conf-title = ВПЕВНЕНІСТЬ
+predict-reason-title = ОБҐРУНТУВАННЯ
 predict-disclaimer = _Прогноз не гарантує результат_
 
 predict-goals-over = Тотал більше { $val }:
@@ -119,10 +120,24 @@ btn-unfollow = Відписатися
 notify-subscribed = Ви будете отримувати сповіщення про цей матч
 notify-unsubscribed = Сповіщення вимкнено
 
+notify-pre-match-title = Матч почнеться через 15 хвилин!
+notify-post-match-title = Матч завершено!
+notify-no-predictions = 📋 У вас немає прогнозів по цьому матчу
+notify-your-predictions = 📊 Ваші прогнози:
+notify-type-outcome = Результат
+notify-type-total = Тотал
+notify-type-btts = Обидві заб'ють
+notify-type-corners = Кутові
+notify-type-cards = Картки
+notify-type-offsides = Офсайди
+
 standings-title = Таблиця: { $league }
 standings-error = Помилка завантаження таблиці.
 standings-loading = Завантажую таблицю...
 standings-not-found = Таблицю не знайдено
 standings-season = Сезон { $start }/{ $end }
-standings-points = очок
+standings-points = Очки
 standings-stats-short = І:{ $played } В:{ $won } Н:{ $draw } П:{ $lost }
+standings-header-form = Форма
+standings-header-goals = Голи
+standings-header-gd = Різниця голів

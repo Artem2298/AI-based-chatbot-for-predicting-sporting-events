@@ -27,6 +27,7 @@ team-stats = Статистика команд
 get-ai-prediction = Получить AI прогноз
 back-to-matches = К списку матчей
 error-loading-details = Произошла ошибка при загрузке деталей
+bet-select = Выберите прогноз
 
 upcoming-matches = Предстоящие матчи
 match-click-hint = Нажми на номер матча для деталей
@@ -78,24 +79,24 @@ predict-insufficient = Недостаточно статистики для { $t
 predict-try-later = Попробуйте позже.
 predict-try-other = Попробуйте другой прогноз.
 
-predict-title-outcome = ИСХОД МАТЧА
-predict-title-corners = УГЛОВЫЕ
-predict-title-cards = КАРТОЧКИ
-predict-title-offsides = ОФСАЙДЫ
-predict-title-total = ТОТАЛ ГОЛОВ (ТБ/ТМ 2.5)
-predict-title-btts = ОБЕ ЗАБЬЮТ
+predict-title-outcome = Исход матча
+predict-title-corners = Угловые
+predict-title-cards = Карточки
+predict-title-offsides = Офсайды
+predict-title-total = Тотал голов (ТБ/ТМ 2.5)
+predict-title-btts = Обе забьют
 
-predict-prob-title = ВЕРОЯТНОСТИ:
+predict-prob-title = ВЕРОЯТНОСТИ
 predict-prob-home = { $team }
 predict-prob-draw = Ничья
 predict-prob-away = { $team }
 
-predict-recomm-title = РЕКОМЕНДАЦИЯ:
+predict-recomm-title = РЕКОМЕНДАЦИЯ
 predict-recomm-win = Победа { $team }
 predict-recomm-draw = Ничья
 
-predict-conf-title = УВЕРЕННОСТЬ:
-predict-reason-title = ОБОСНОВАНИЕ:
+predict-conf-title = УВЕРЕННОСТЬ
+predict-reason-title = ОБОСНОВАНИЕ
 predict-disclaimer = _Прогноз не гарантирует результат_
 
 predict-goals-over = Тотал больше { $val }:
@@ -119,10 +120,24 @@ btn-unfollow = Отписаться
 notify-subscribed = Вы будете получать уведомления об этом матче
 notify-unsubscribed = Уведомления отключены
 
+notify-pre-match-title = Матч начнется через 15 минут!
+notify-post-match-title = Матч завершен!
+notify-no-predictions = 📋 У вас нет прогнозов по этому матчу
+notify-your-predictions = 📊 Ваши прогнозы:
+notify-type-outcome = Исход
+notify-type-total = Тотал
+notify-type-btts = Обе забьют
+notify-type-corners = Угловые
+notify-type-cards = Карточки
+notify-type-offsides = Офсайды
+
 standings-title = Таблица: { $league }
 standings-error = Ошибка загрузки таблицы.
 standings-loading = Загружаю таблицу...
 standings-not-found = Таблица не найдена
 standings-season = Сезон { $start }/{ $end }
-standings-points = очков
+standings-points = Очки
 standings-stats-short = И:{ $played } В:{ $won } Н:{ $draw } П:{ $lost }
+standings-header-form = Форма
+standings-header-goals = Голы
+standings-header-gd = Разница голов

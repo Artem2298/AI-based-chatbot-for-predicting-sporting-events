@@ -25,8 +25,9 @@ score = Skóre
 match-not-started = Zápas ještě nezačal
 team-stats = Statistiky týmů
 get-ai-prediction = Získat AI předpověď
-back-to-matches = K zápasům
+back-to-matches = Seznam zápasů
 error-loading-details = Chyba při načítání detailů
+bet-select = Vyberte prognozu
 
 upcoming-matches = Nadcházející zápasy
 match-click-hint = Klikni na číslo zápasu pro detaily
@@ -85,17 +86,17 @@ predict-title-offsides = Ofsajdy
 predict-title-total = Celkové góly (O/U 2.5)
 predict-title-btts = Oba týmy dají gól
 
-predict-prob-title = PRAVDĚPODOBNOSTI:
+predict-prob-title = PRAVDĚPODOBNOSTI
 predict-prob-home = { $team }
 predict-prob-draw = Remíza
 predict-prob-away = { $team }
 
-predict-recomm-title = DOPORUČENÍ:
+predict-recomm-title = DOPORUČENÍ
 predict-recomm-win = Výhra { $team }
 predict-recomm-draw = Remíza
 
-predict-conf-title = DŮVĚRA:
-predict-reason-title = ODŮVODNĚNÍ:
+predict-conf-title = DŮVĚRA
+predict-reason-title = ODŮVODNĚNÍ
 predict-disclaimer = Předpověď nezaručuje výsledek
 
 predict-goals-over = Celkem více než { $val }:
@@ -119,10 +120,24 @@ btn-unfollow = Přestat sledovat
 notify-subscribed = Budete dostávat oznámení o tomto zápasu
 notify-unsubscribed = Oznámení vypnuta
 
+notify-pre-match-title = Zápas začíná za 15 minut!
+notify-post-match-title = Zápas skončil!
+notify-no-predictions = 📋 Nemáte žádné předpovědi pro tento zápas
+notify-your-predictions = 📊 Vaše předpovědi:
+notify-type-outcome = Výsledek
+notify-type-total = Celkové góly
+notify-type-btts = Oba týmy dají gól
+notify-type-corners = Rohové kopy
+notify-type-cards = Karty
+notify-type-offsides = Ofsajdy
+
 standings-title = Tabulka: { $league }
 standings-error = Chyba načítání tabulky.
 standings-loading = Načítám tabulku...
 standings-not-found = Tabulka nebyla nalezena
 standings-season = Sezóna { $start }/{ $end }
-standings-points = bodů
+standings-points = Skóre
 standings-stats-short = Z:{ $played } V:{ $won } R:{ $draw } P:{ $lost }
+standings-header-form = Forma
+standings-header-goals = Góly
+standings-header-gd = Rozdíl gólů

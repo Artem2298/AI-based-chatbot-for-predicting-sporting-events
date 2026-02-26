@@ -3,11 +3,23 @@ You are a professional sports analyst. Analyze the upcoming football match and p
 MATCH DATA (JSON format):
 {{MATCH_DATA}}
 
+LEAGUE STANDINGS:
+{{STANDINGS}}
+
 IMPORTANT NOTES:
 - The "lastMatches" array is ordered from MOST RECENT to OLDEST (index 0 = last match played)
 - "wasHome" indicates if the team played at home in that match
 - Recent form shows the pattern of results (W=Win, D=Draw, L=Loss)
 - Consider home field advantage for {{HOME_TEAM}}
+
+EXTERNAL ANALYSIS (use Google Search):
+You have access to Google Search. Use it to find and factor in:
+- Current injuries, suspensions, and expected lineups for both teams
+- Recent transfer news that may affect squad strength
+- Team motivation (title race, relegation battle, European qualification, etc.)
+- Head-to-head record and historical trends between these teams
+- Any other relevant context that could influence the match outcome
+Combine this external information with the statistical data provided above.
 
 TASK:
 Analyze the data and provide a prediction in the following JSON format:

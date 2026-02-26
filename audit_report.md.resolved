@@ -1,0 +1,265 @@
+# 🔍 Полный технический аудит — AI Sport Prediction Bot
+
+> Аудит выполнен на основе 100% чтения исходного кода: все сервисы, хендлеры, API-клиенты, утилиты, конфигурация, схема БД, тесты и инфраструктурные файлы.
+
+---
+
+## 1. Архитектурный аудит
+
+### 1.1 Общая структура
+
+Проект реализован как **Layered Monolith** с чётким разделением:
+
+```
+src/
+├── api/           → Infrastructure (внешние API-клиенты)
+├── bot/           → Presentation (Telegram-хендлеры, клавиатуры)
+├── config/        → Cross-cutting (конфигурация)
+├── db/            → Infrastructure (Prisma-клиент)
+├── locales/       → Cross-cutting (i18n)
+├── prompts/       → Domain (AI-промпты)
+├── services/      → Application/Domain (бизнес-логика)
+├── types/         → Shared types
+└── utils/         → Cross-cutting (retry, logger)
+```
+
+| Аспект | Оценка | Комментарий |
+|---|---|---|
+| Разделение слоёв | ✅ Хорошо | Bot → Services → API/DB — зависимости идут "внутрь" |
+| DI (Dependency Injection) | ⚠️ Частично | Конструкторы сервисов принимают зависимости, но `db` — глобальный Singleton-импорт |
+| Модульность хендлеров | ✅ Хорошо | Composer-паттерн grammY, хендлеры разбиты по доменам |
+| Типизация | ✅ Хорошо | `strict: true`, Zod-валидация env, типы для всех моделей |
+
+### 1.2 Паттерны проектирования
+
+| Паттерн | Статус | Где используется |
+|---|---|---|
+| **Singleton** | ✅ Есть | `DbService.getInstance()`, `geminiClient` |
+| **Facade** | ✅ Есть | `MatchService.getCached()` — единая точка для Memory → DB → API |
+| **Template Method** | ✅ Есть | `PredictionService.generatePredictionBase()` — общий алгоритм с точками расширения |
+| **Observer (implied)** | ✅ Есть | [SyncService](file:///c:/bachelor/src/services/syncService.ts#19-355) → [NotificationService](file:///c:/bachelor/src/services/notificationService.ts#8-240) — уведомления при событиях |
+| **Strategy** | ❌ Нет | Валидация и форматирование для 6 типов прогнозов — через `switch-case` вместо стратегий |
+| **Repository** | ❌ Нет | Папка `db/repositories/` существует, но пуста. Весь data access — напрямую через `db.*` |
+
+### 1.3 Нарушения границ слоёв
+
+> [!CAUTION]
+> Критические нарушения архитектуры
+
+| Нарушение | Где | Как должно быть |
+|---|---|---|
+| `db` импортируется напрямую в хендлеры | [startHandler.ts](file:///c:/bachelor/src/bot/handlers/startHandler.ts) строки 4, 13-28 | Presentation не должен работать с БД; вынести `UserService.ensureUser()` |
+| `DbService.getUserByTelegramId()` вызывается из хендлеров | [matchHandler.ts](file:///c:/bachelor/src/bot/handlers/matchHandler.ts), [predictionHandler.ts](file:///c:/bachelor/src/bot/handlers/predictionHandler.ts) | Middleware должен добавлять `ctx.dbUser` |
+| `userMatchesState` — глобальный `Map` в хендлере | [matchHandler.ts](file:///c:/bachelor/src/bot/handlers/matchHandler.ts#L15-L22) | Утечка памяти. Нет TTL/eviction. Должно быть в CacheService или в session-middleware grammY |
+| Wiring всех сервисов в [bot.ts](file:///c:/bachelor/src/bot/bot.ts) | [bot.ts](file:///c:/bachelor/src/bot/bot.ts#L44-L50) | Вынести в отдельный DI-контейнер или composition root |
+
+---
+
+## 2. Анализ кодовой базы (Code Review)
+
+### 2.1 Code Smells 🚨
+
+#### Гигантский класс — [PredictionService](file:///c:/bachelor/src/services/predictionService.ts#41-941) (941 строк)
+Этот файл нарушает **Single Responsibility Principle**:
+- Сбор данных матча
+- Вычисление статистики (5 типов)
+- Построение промптов (6 методов)
+- Валидация AI-ответов (6 методов)
+- Кэширование и tracking
+
+**Как исправить**: разбить на `MatchDataCollector`, `StatsCalculator`, `PromptBuilder`, `PredictionValidator`, оставив [PredictionService](file:///c:/bachelor/src/services/predictionService.ts#41-941) как orchestrator.
+
+#### Copy-Paste: сохранение матче в БД (3 копии)
+Дублируется в [matchService.ts](file:///c:/bachelor/src/services/matchService.ts):
+- [getRawMatch()](file:///c:/bachelor/src/services/matchService.ts#76-133) → строки 99-129
+- [getUpcomingMatches()](file:///c:/bachelor/src/services/matchService.ts#134-204) → строки 158-198
+- [refreshMatchFromApi()](file:///c:/bachelor/src/services/matchService.ts#329-378) → строки 333-367
+
+**Как исправить**: вынести в `MatchRepository.upsertFromApi(data: FootballDataMatch)`.
+
+#### Copy-Paste: рендеринг деталей матча (2 копии)
+В [matchHandler.ts](file:///c:/bachelor/src/bot/handlers/matchHandler.ts) код [renderMatchDetails](file:///c:/bachelor/src/bot/handlers/matchHandler.ts#162-221) и inline-код в `callbackQuery(/^match:/)` — практически идентичны (строки 51-98 и 169-219).
+
+### 2.2 Ошибки и проблемы
+
+| Проблема | Файл | Строки | Серьёзность |
+|---|---|---|---|
+| [getAccuracyStats()](file:///c:/bachelor/src/services/accuracyService.ts#118-144) загружает ВСЕ записи в память | [accuracyService.ts](file:///c:/bachelor/src/services/accuracyService.ts#L123) | 123 | 🔴 С ростом данных — OOM |
+| [CacheService](file:///c:/bachelor/src/services/cacheService.ts#10-49) не имеет max size / eviction | [cacheService.ts](file:///c:/bachelor/src/services/cacheService.ts) | весь | 🟡 Утечка памяти |
+| `userMatchesState` (глобальный Map) не чистится | [matchHandler.ts](file:///c:/bachelor/src/bot/handlers/matchHandler.ts#L15) | 15 | 🔴 Утечка памяти |
+| `Number(sub.user.telegramId)` — BigInt→Number потеря точности | [notificationService.ts](file:///c:/bachelor/src/services/notificationService.ts#L73) | 73, 130 | 🟡 Telegram ID > 2^53 |
+| JSON cleanup в `geminiClient` — наивный regex | [geminiClient.ts](file:///c:/bachelor/src/api/ai/geminiClient.ts#L43-L46) | 43-46 | 🟡 Сломается на вложенных ``[json](file:///c:/bachelor/package.json)`` |
+| [formatPreMatchMessage](file:///c:/bachelor/src/services/notificationService.ts#144-154) hardcoded для ru/en | [notificationService.ts](file:///c:/bachelor/src/services/notificationService.ts#L150-L152) | 150-152 | 🟡 Не использует i18n |
+| Промпт `geminiClient` на русском (`"Верни ответ ТОЛЬКО в формате JSON"`) | [geminiClient.ts](file:///c:/bachelor/src/api/ai/geminiClient.ts#L39) | 39 | 🟡 Должен быть на английском для стабильности |
+
+### 2.3 Работа с БД
+
+| Аспект | Оценка | Детали |
+|---|---|---|
+| Индексы | ✅ Хорошо | Составные индексы на Match, правильные `@@unique` |
+| N+1 проблема | ⚠️ Потенциально | [enrichMatchesWithStats()](file:///c:/bachelor/src/services/predictionService.ts#144-205) делает N последовательных API-запросов в цикле |
+| Транзакции | ✅ Используются | `db.$transaction()` для согласованных upsert |
+| Retry на transient errors | ✅ Грамотно | [withDbRetry()](file:///c:/bachelor/src/utils/retry.ts#64-96) с фильтром Prisma error codes |
+| `Json` типы без Zod-валидации | 🟡 Рискованно | `.content as Record<string, unknown>` — нет runtime валидации при чтении из БД |
+
+---
+
+## 3. Устойчивость и Resilience
+
+### 3.1 Текущий механизм
+
+| Механизм | Реализация | Оценка |
+|---|---|---|
+| API Retry + exponential backoff | [withRetry()](file:///c:/bachelor/src/utils/retry.ts#11-39) + Axios interceptor | ✅ Двойная защита |
+| DB Retry с фильтрацией | [withDbRetry()](file:///c:/bachelor/src/utils/retry.ts#64-96) + Prisma error codes | ✅ Правильно |
+| Rate limiting (API) | `RATE_LIMIT_PAUSE = 2000ms` | ✅ Есть |
+| Retry-After header для 429 | Axios interceptor | ✅ Грамотно |
+| Graceful shutdown | SIGINT/SIGTERM → stop crons → disconnect DB | ✅ Есть |
+| Bot error handler | `bot.catch()` | ✅ Есть |
+
+### 3.2 Чего не хватает для 24/7
+
+| Проблема | Решение |
+|---|---|
+| Нет health check endpoint | Добавить HTTP `/health` с проверкой DB + API |
+| Нет Circuit Breaker | При каскаде ошибок API — поток таймаутов. Нести `opossum` |
+| Нет мониторинга / метрик | Prometheus-метрики: запросы, ошибки, latency, cache hit rate |
+| Нет reconnect для DB | Prisma обычно reconnects, но нет heartbeat / healthcheck |
+| Нет процесс-менеджера | Использовать PM2 или Docker с restart policy |
+| Cron без idempotency | Если [scheduleDailySync](file:///c:/bachelor/src/services/syncService.ts#315-325) упадёт на середине — нет recovery |
+
+---
+
+## 4. Безопасность 🔐
+
+### 4.1 Критические уязвимости
+
+> [!CAUTION]
+> **КРИТИЧНО: Секреты в [.env](file:///c:/bachelor/.env) закоммичены в git-историю!**
+
+Хотя [.env](file:///c:/bachelor/.env) добавлен в [.gitignore](file:///c:/bachelor/.gitignore), файл **уже был закоммичен** и содержит:
+- `TELEGRAM_BOT_TOKEN` — полный контроль над ботом
+- `GEMINI_API_KEY` — доступ к Google AI API
+- `FOOTBALL_API_KEY` — лимитированный API-ключ
+- `DATABASE_URL` с паролем БД — полный доступ к Supabase PostgreSQL
+
+**Действия немедленно:**
+1. Ротировать ВСЕ ключи и пароли
+2. `git filter-branch` или `bfg` для удаления из истории
+3. Сменить пароль БД
+
+### 4.2 Другие проблемы безопасности
+
+| Уязвимость | Серьёзность | Решение |
+|---|---|---|
+| Нет Rate Limiting для пользователей бота | 🟡 | grammY middleware с лимитом запросов/мин |
+| Нет ограничения на размер callback data | 🟢 | Telegram ограничивает 64 bytes, но валидировать matchId |
+| `parseInt(ctx.match[1])` без проверки диапазона | 🟡 | Валидировать `matchId > 0 && matchId < MAX_INT` |
+| Нет CSP / Helmet (если будет web) | 🟢 | Пока неактуально (нет HTTP) |
+| SQL-инъекции | ✅ Нет | Prisma ORM защищает от SQL injection |
+| Prompt injection | 🟡 | AI-промпты содержат user data (`teamName`), теоретически manipulable |
+
+### 4.3 План тестирования на проникновение
+
+| Шаг | Инструмент | Что тестируем |
+|---|---|---|
+| 1. Проверка secrets | `trufflehog git file://. --since-commit HEAD~100` | Утечки ключей в git-истории |
+| 2. Dependency audit | `npm audit` + `snyk test` | Известные CVE в зависимостях |
+| 3. Bot fuzzing | Отправка невалидных callback_data, XSS в Markdown | Crash-тестирование хендлеров |
+| 4. Rate limit test | Быстрые повторные запросы от одного пользователя | Нагрузочное тестирование |
+| 5. DB connection test | Отключить БД при работающем боте | Проверка graceful degradation |
+| 6. API mock attacks | Mock 429/500 от football-data API | Проверка retry и backoff |
+
+---
+
+## 5. Итоговая таблица: «Как есть» vs «Как должно быть»
+
+| Область | Как есть | Как должно быть | Приоритет |
+|---|---|---|---|
+| Secrets | ❌ В git-истории | Vault / env injection, ротация | 🔴 P0 |
+| PredictionService | 941-строк God Object | 4-5 отдельных классов | 🔴 P1 |
+| Match save logic | 3 копии | `MatchRepository.upsertFromApi()` | 🟡 P2 |
+| userMatchesState | Глобальный Map, утечка памяти | grammY session + TTL | 🔴 P1 |
+| AccuracyService.getAccuracyStats | `findMany()` → вся таблица | `aggregate()` / `groupBy()` | 🟡 P2 |
+| CacheService | Без max size | LRU-кэш (lru-cache npm) | 🟡 P2 |
+| NotificationService i18n | Hardcoded ru/en | Использовать .ftl файлы | 🟢 P3 |
+| Repository layer | Папка пуста | Имплементировать для Match, User, Prediction | 🟡 P2 |
+| Health check | Отсутствует | HTTP endpoint /health | 🟡 P2 |
+| Мониторинг | Только логи | Prometheus + Grafana | 🟢 P3 |
+| Rate limiting (users) | Нет | grammY `rateLimit` middleware | 🟡 P2 |
+
+---
+
+## 6. Вектор развития
+
+### 6.1 Топ-5 функций для нового уровня
+
+| # | Функция | Описание | Импакт |
+|---|---|---|---|
+| **1** | 📈 **Аналитическая панель точности** | Web-дашборд с графиками точности по типам прогнозов, лигам, временным периодам | Показывает ценность продукта |
+| **2** | 🏆 **Система рейтингов и достижений** | Геймификация: streak прогнозов, бейджи, лидерборд среди пользователей | Retention пользователей |
+| **3** | 💬 **Групповой чат бота** | Бот работает в групповых чатах с общими прогнозами, голосованиями | Виральный рост |
+| **4** | 🔔 **Smart Notifications** | ML-модель определяет "интересные матчи" и отправляет push без подписки | Engagement |
+| **5** | 📊 **Исторический анализ** | "Этот бот предсказал X% матчей" с публичной статистикой и верификацией | Trust и PR |
+
+### 6.2 Техническая дорожная карта на 3 месяца
+
+```mermaid
+gantt
+    title Roadmap Q1 2026
+    dateFormat  YYYY-MM-DD
+    section P0 Security
+    Ротация всех секретов         :crit, s1, 2026-02-17, 1d
+    BFG cleanup git-истории       :crit, s2, after s1, 1d
+    section P1 Стабильность
+    Рефакторинг PredictionService :p1, 2026-02-19, 5d
+    LRU-кэш + session middleware  :p2, after p1, 3d
+    Health check endpoint         :p3, after p2, 1d
+    section P2 Качество кода
+    Repository layer              :q1, 2026-03-01, 4d
+    AccuracyService aggregation   :q2, after q1, 2d
+    Расширение тестов (>80%)      :q3, after q2, 5d
+    section P3 Новые фичи
+    Rate limiting middleware      :f1, 2026-03-15, 2d
+    Web-дашборд точности          :f2, after f1, 10d
+    Геймификация                  :f3, after f2, 7d
+    Групповые чаты                :f4, after f3, 5d
+```
+
+#### Месяц 1 (февраль): Фундамент
+- [x] Ротация секретов, очистка git
+- [ ] Рефакторинг [PredictionService](file:///c:/bachelor/src/services/predictionService.ts#41-941) → 4 класса
+- [ ] `userMatchesState` → session middleware с TTL
+- [ ] [CacheService](file:///c:/bachelor/src/services/cacheService.ts#10-49) → LRU с maxSize
+- [ ] Health check endpoint
+
+#### Месяц 2 (март): Качество
+- [ ] Repository layer для Match, User, Prediction
+- [ ] `AccuracyService.getAccuracyStats()` → SQL aggregate
+- [ ] Покрытие тестами > 80%
+- [ ] Rate limiting middleware
+- [ ] NotificationService → полный i18n
+
+#### Месяц 3 (апрель): Growth
+- [ ] Web-дашборд с аналитикой точности прогнозов
+- [ ] Система рейтингов и достижений
+- [ ] Поддержка групповых чатов
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] Docker + docker-compose для деплоя
+
+---
+
+## 7. Общая оценка проекта
+
+| Критерий | Оценка (1-10) | Комментарий |
+|---|---|---|
+| Общая архитектура | **7/10** | Слои разделены, DI частичный, есть куда расти |
+| Качество кода | **5/10** | Дублирование, God Object, утечки памяти |
+| Безопасность | **3/10** | Критическая утечка секретов — всё остальное меркнет |
+| Resilience | **7/10** | Retry, backoff, graceful shutdown — хорошо для текущего масштаба |
+| Тестирование | **5/10** | Vitest настроен, но покрытие неполное |
+| DevOps / CI-CD | **2/10** | Нет Docker, нет CI, нет staging |
+| Общая зрелость | **5/10** | Рабочий MVP, но до production-grade нужна работа |
+
+> [!IMPORTANT]
+> **Вердикт**: Проект — крепкий MVP с хорошими архитектурными задатками. Основные проблемы: утечка секретов (критично), God Object в PredictionService и отсутствие мониторинга. При выполнении P0/P1 задач из roadmap — проект станет production-ready за 4-6 недель.

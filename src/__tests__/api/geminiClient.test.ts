@@ -48,7 +48,10 @@ describe('GeminiClient', () => {
       expect(result).toBe('Hello world');
       expect(mockGenAI.models.generateContent).toHaveBeenCalledWith({
         model: 'gemini-1.5-pro',
-        contents: 'Say hello'
+        contents: 'Say hello',
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
       });
     });
 

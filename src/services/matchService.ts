@@ -16,7 +16,6 @@ const COMPETITION_IDS: Record<string, number> = {
   SA: 2019,
   PD: 2014,
   FL1: 2015,
-  CL: 2001,
 };
 
 export class MatchService {
@@ -133,22 +132,75 @@ export class MatchService {
 
   async getUpcomingMatches(
     competitionCode: string,
-    days: number = 7
+    days: number = 7,
+    forceRefresh: boolean = false
   ): Promise<Match[]> {
-    // Memory cache check
     const cacheKey = `upcoming:${competitionCode}:${days}`;
-    const cached = this.cache.get(cacheKey) as Match[];
-    if (cached) {
-      log.debug({ key: cacheKey }, 'memory cache hit');
-      return cached;
-    }
 
-    log.debug({ key: cacheKey }, 'fetching from API');
-    const response = await this.footballApi.getUpcomingMatches(competitionCode);
+    // 1. Memory cache check (only if not forcing refresh)
+    if (!forceRefresh) {
+      const cached = this.cache.get(cacheKey) as Match[];
+      if (cached) {
+        log.debug({ key: cacheKey }, 'memory cache hit');
+        return cached;
+      }
+    }
 
     const now = new Date();
     const endDate = new Date();
     endDate.setDate(now.getDate() + days);
+
+    // 2. Database check (if not forcing refresh)
+    if (!forceRefresh) {
+      try {
+        const dbMatches = await withDbRetry(
+          () =>
+            db.match.findMany({
+              where: {
+                competitionCode: competitionCode,
+                utcDate: {
+                  gte: now,
+                  lte: endDate,
+                },
+              },
+              include: {
+                homeTeam: true,
+                awayTeam: true,
+              },
+              orderBy: {
+                utcDate: 'asc',
+              },
+            }),
+          `getUpcomingMatches:${competitionCode}`
+        );
+
+        if (dbMatches.length > 0) {
+          log.debug({ competitionCode, count: dbMatches.length }, 'database hit for upcoming matches');
+          
+          const matches = dbMatches.map((m) => ({
+            id: m.id,
+            homeTeam: m.homeTeam.name,
+            homeTeamId: m.homeTeam.id,
+            awayTeam: m.awayTeam.name,
+            awayTeamId: m.awayTeam.id,
+            date: m.utcDate,
+            status: m.status,
+            competition: m.competitionName,
+            competitionCode: m.competitionCode,
+          }));
+
+          // Valid for 1 hour in memory
+          this.cache.set(cacheKey, matches, 3600);
+          return matches;
+        }
+      } catch (error) {
+        log.warn({ competitionCode, err: error }, 'failed to fetch matches from DB, falling back to API');
+      }
+    }
+
+    // 3. API Fetch (Fallback or Forced)
+    log.info({ key: cacheKey, forceRefresh }, 'fetching upcoming matches from API');
+    const response = await this.footballApi.getUpcomingMatches(competitionCode);
 
     const filtered = response.matches.filter((match) => {
       const matchDate = new Date(match.utcDate);
@@ -156,6 +208,59 @@ export class MatchService {
     });
 
     for (const match of filtered) {
+      try {
+        await withDbRetry(
+          () =>
+            db.$transaction([
+              db.team.upsert({
+                where: { id: match.homeTeam.id },
+                update: { name: match.homeTeam.name },
+                create: { id: match.homeTeam.id, name: match.homeTeam.name },
+              }),
+              db.team.upsert({
+                where: { id: match.awayTeam.id },
+                update: { name: match.awayTeam.name },
+                create: { id: match.awayTeam.id, name: match.awayTeam.name },
+              }),
+              db.match.upsert({
+                where: { id: match.id },
+                update: {
+                  status: match.status,
+                  scoreHome: match.score.fullTime.home,
+                  scoreAway: match.score.fullTime.away,
+                  utcDate: new Date(match.utcDate), // Ensure date is updated
+                },
+                create: {
+                  id: match.id,
+                  utcDate: new Date(match.utcDate),
+                  status: match.status,
+                  homeTeamId: match.homeTeam.id,
+                  awayTeamId: match.awayTeam.id,
+                  scoreHome: match.score.fullTime.home,
+                  scoreAway: match.score.fullTime.away,
+                  competitionCode: match.competition?.code || competitionCode,
+                  competitionName: match.competition?.name || 'Unknown',
+                },
+              }),
+            ]),
+          `saveMatch(${match.id})`
+        );
+      } catch (error) {
+        log.error({ matchId: match.id, err: error }, 'failed to save match to DB');
+      }
+    }
+
+    const matches = filtered.map(mapToMatch);
+    // Cache for 1 hour in memory
+    this.cache.set(cacheKey, matches, 3600);
+    return matches;
+  }
+
+  async syncFinishedMatches(competitionCode: string): Promise<number> {
+    const response = await this.footballApi.getFinishedMatches(competitionCode);
+    let saved = 0;
+
+    for (const match of response.matches) {
       try {
         await withDbRetry(
           () =>
@@ -190,16 +295,15 @@ export class MatchService {
                 },
               }),
             ]),
-          `saveMatch(${match.id})`
+          `syncFinished(${match.id})`
         );
+        saved++;
       } catch (error) {
-        log.error({ matchId: match.id, err: error }, 'failed to save match to DB');
+        log.error({ matchId: match.id, err: error }, 'failed to save finished match');
       }
     }
 
-    const matches = filtered.map(mapToMatch);
-    this.cache.set(cacheKey, matches, 300);
-    return matches;
+    return saved;
   }
 
   async getMatchDetails(matchId: number): Promise<MatchWithScore> {
@@ -241,7 +345,32 @@ export class MatchService {
           score: match.score.fullTime,
         }));
       },
-      3600
+      3600,
+      async () => {
+        const matches = await db.match.findMany({
+          where: {
+            OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+            status: 'FINISHED',
+            ...(competitionCode ? { competitionCode } : {}),
+          },
+          include: { homeTeam: true, awayTeam: true },
+          orderBy: { utcDate: 'desc' },
+          take: limit,
+        });
+        if (matches.length < limit) return null;
+        return matches.map((m) => ({
+          id: m.id,
+          homeTeam: m.homeTeam.name,
+          homeTeamId: m.homeTeam.id,
+          awayTeam: m.awayTeam.name,
+          awayTeamId: m.awayTeam.id,
+          date: m.utcDate,
+          status: m.status,
+          competition: m.competitionName,
+          competitionCode: m.competitionCode,
+          score: { home: m.scoreHome, away: m.scoreAway },
+        }));
+      }
     );
   }
 

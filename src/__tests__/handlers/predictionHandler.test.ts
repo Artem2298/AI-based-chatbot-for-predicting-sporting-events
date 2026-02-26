@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPredictionComposer } from '../../bot/handlers/predictionHandler';
 import { userMatchesState } from '../../bot/handlers/matchHandler';
 import { MatchService } from '@/services/matchService';
-import { PredictionService } from '@/services/predictionService';
+import { PredictionService } from '@/services/prediction';
 import { Match } from '@/types/match.types';
 import { createMockCtx } from '../helpers/mockContext';
 
@@ -70,8 +70,8 @@ describe('predictionHandler', () => {
     const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
       .calls[0][0];
     expect(message).toContain('Match outcome');
-    expect(message).toContain('Corners');
-    expect(message).toContain('Cards');
+    expect(message).toContain('Total goals (O/U 2.5)');
+    expect(message).toContain('Both team to score');
   });
 
   it('should handle outcome prediction generation', async () => {
@@ -113,10 +113,10 @@ describe('predictionHandler', () => {
 
   it('should handle insufficient data error during prediction', async () => {
     (ctx.update as Record<string, unknown>).callback_query = {
-      data: 'predict_type:corners:123',
+      data: 'predict_type:outcome:123',
       from: { id: 1 },
     };
-    ctx.match = ['predict_type:corners:123', 'corners', '123'];
+    ctx.match = ['predict_type:outcome:123', 'outcome', '123'];
 
     mockMatchService.getMatchDetails.mockResolvedValue({
       id: 123,

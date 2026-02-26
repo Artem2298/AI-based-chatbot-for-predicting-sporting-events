@@ -4,17 +4,17 @@ export interface DetailedMatchStats {
   goalsConceded: number;
   opponent: string;
   wasHome: boolean;
-  
-  corners?: number;
-  yellowCards?: number;
-  redCards?: number;
-  offsides?: number;
-  shotsOnTarget?: number;
-  shotsOffTarget?: number;
-  possession?: number;
+
+  // corners?: number;
+  // yellowCards?: number;
+  // redCards?: number;
+  // offsides?: number;
+  // shotsOnTarget?: number;
+  // shotsOffTarget?: number;
+  // possession?: number;
 }
 
-export type PredictionType = 'outcome' | 'corners' | 'cards' | 'offsides' | 'total' | 'btts';
+export type PredictionType = 'outcome' | 'total' | 'btts';
 
 export interface BasePrediction {
   type: PredictionType;
@@ -30,41 +30,41 @@ export interface MatchOutcomePrediction extends BasePrediction {
   recommendation: '1' | 'X' | '2';
 }
 
-export interface CornersPrediction extends BasePrediction {
-  type: 'corners';
-  totalOver9_5: number;
-  totalUnder9_5: number;
-  homeTeamOver5_5: number;
-  awayTeamOver4_5: number;
-  expectedTotal: number;
-  expectedHome: number;
-  expectedAway: number;
-  recommendation: string;
-}
+// export interface CornersPrediction extends BasePrediction {
+//   type: 'corners';
+//   totalOver9_5: number;
+//   totalUnder9_5: number;
+//   homeTeamOver5_5: number;
+//   awayTeamOver4_5: number;
+//   expectedTotal: number;
+//   expectedHome: number;
+//   expectedAway: number;
+//   recommendation: string;
+// }
 
-export interface CardsPrediction extends BasePrediction {
-  type: 'cards';
-  totalOver3_5: number;
-  totalUnder3_5: number;
-  homeTeamOver1_5: number;
-  awayTeamOver1_5: number;
-  expectedYellow: number;
-  expectedRed: number;
-  expectedTotal: number;
-  recommendation: string;
-}
+// export interface CardsPrediction extends BasePrediction {
+//   type: 'cards';
+//   totalOver3_5: number;
+//   totalUnder3_5: number;
+//   homeTeamOver1_5: number;
+//   awayTeamOver1_5: number;
+//   expectedYellow: number;
+//   expectedRed: number;
+//   expectedTotal: number;
+//   recommendation: string;
+// }
 
-export interface OffsidesPrediction extends BasePrediction {
-  type: 'offsides';
-  totalOver3_5: number;
-  totalUnder3_5: number;
-  homeTeamOver1_5: number;
-  awayTeamOver1_5: number;
-  expectedTotal: number;
-  expectedHome: number;
-  expectedAway: number;
-  recommendation: string;
-}
+// export interface OffsidesPrediction extends BasePrediction {
+//   type: 'offsides';
+//   totalOver3_5: number;
+//   totalUnder3_5: number;
+//   homeTeamOver1_5: number;
+//   awayTeamOver1_5: number;
+//   expectedTotal: number;
+//   expectedHome: number;
+//   expectedAway: number;
+//   recommendation: string;
+// }
 
 export interface TotalGoalsPrediction extends BasePrediction {
   type: 'total';
@@ -87,9 +87,9 @@ export interface BttsPrediction extends BasePrediction {
 
 export type Prediction =
   | MatchOutcomePrediction
-  | CornersPrediction
-  | CardsPrediction
-  | OffsidesPrediction
+  // | CornersPrediction
+  // | CardsPrediction
+  // | OffsidesPrediction
   | TotalGoalsPrediction
   | BttsPrediction;
 

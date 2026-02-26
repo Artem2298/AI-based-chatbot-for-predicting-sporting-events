@@ -10,6 +10,7 @@ const log = createLogger('sync');
 
 const LEAGUES = ['PL', 'BL1', 'SA', 'PD', 'FL1'];
 const RATE_LIMIT_PAUSE = 2000;
+const BACKFILL_PAUSE = 7000; // 7s between backfill requests (10 req/min limit)
 const CHECK_INTERVAL = 5 * 60 * 1000; // 5 min
 const MATCH_DURATION_BUFFER = 2 * 60 * 60 * 1000; // kick-off + 2h buffer
 const MAX_MONITORING_TIME = 60 * 60 * 1000; // 1h monitoring window
@@ -39,7 +40,7 @@ export class SyncService {
       try {
         log.debug({ competition: code }, 'syncing competition');
         const matches = await withRetry(
-          () => this.matchService.getUpcomingMatches(code, days),
+          () => this.matchService.getUpcomingMatches(code, days, true),
           { retries: 2, delayMs: 3000, label: `sync(${code})` }
         );
         log.info({ competition: code, count: matches.length }, 'synced upcoming matches');
@@ -51,6 +52,41 @@ export class SyncService {
     }
 
     log.info('sync completed');
+  }
+
+  async syncFinishedMatches(competitions: string[] = LEAGUES) {
+    // Check if backfill already done (expect hundreds of matches after backfill)
+    const finishedCount = await withDbRetry(
+      () => db.match.count({ where: { status: 'FINISHED' } }),
+      'backfillCheck'
+    );
+
+    if (finishedCount >= 100) {
+      log.info({ finishedCount }, 'backfill already done, skipping');
+      return;
+    }
+
+    log.info({ finishedCount }, 'not enough finished matches in DB, starting backfill');
+
+    log.info({ competitionCount: competitions.length }, 'starting finished matches backfill');
+
+    let totalSaved = 0;
+    for (const code of competitions) {
+      try {
+        const saved = await withRetry(
+          () => this.matchService.syncFinishedMatches(code),
+          { retries: 2, delayMs: 5000, label: `backfill(${code})` }
+        );
+        totalSaved += saved;
+        log.info({ competition: code, saved }, 'backfill completed for competition');
+
+        await new Promise((resolve) => setTimeout(resolve, BACKFILL_PAUSE));
+      } catch (error) {
+        log.error({ competition: code, err: error }, 'backfill failed for competition');
+      }
+    }
+
+    log.info({ totalSaved }, 'finished matches backfill completed');
   }
 
   async scheduleMatchMonitoring() {

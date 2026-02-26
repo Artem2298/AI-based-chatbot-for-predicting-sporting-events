@@ -5,7 +5,9 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('handler:standings');
 
-export function createStandingsComposer(matchService: MatchService): Composer<BotContext> {
+export function createStandingsComposer(
+  matchService: MatchService
+): Composer<BotContext> {
   const composer = new Composer<BotContext>();
 
   composer.callbackQuery(/^standings:(.+)$/, async (ctx) => {
@@ -26,10 +28,12 @@ export function createStandingsComposer(matchService: MatchService): Composer<Bo
       }
 
       let message = `🏆 ${ctx.t('standings-title', { league: standings.competition.name })}\n`;
-      message += `${ctx.t('standings-season', { 
-        start: standings.season.startDate.substring(0, 4), 
-        end: standings.season.endDate.substring(0, 4) 
+      message += `${ctx.t('standings-season', {
+        start: standings.season.startDate.substring(0, 4),
+        end: standings.season.endDate.substring(0, 4),
       })}\n\n`;
+
+      message += `   📊 ${ctx.t('standings-points')}  |  ${ctx.t('standings-header-form')}  |  ${ctx.t('standings-header-goals')}  |  ${ctx.t('standings-header-gd')}\n\n`;
 
       const topTeams = mainStanding.table.slice(0, 20);
 
@@ -39,36 +43,23 @@ export function createStandingsComposer(matchService: MatchService): Composer<Bo
         else if (entry.position === 2) positionEmoji = '🥈';
         else if (entry.position === 3) positionEmoji = '🥉';
 
-        const formStr = entry.form
-          ? entry.form
-              .split(',')
-              .map((result) => {
-                if (result === 'W') return '✅';
-                if (result === 'D') return '🟰';
-                if (result === 'L') return '❌';
-                return '';
-              })
-              .join('')
-          : '';
-
         message += `${positionEmoji} ${entry.team.shortName || entry.team.name}\n`;
-        message += `   📊 ${entry.points} ${ctx.t('standings-points')} | ${ctx.t('standings-stats-short', {
-          played: entry.playedGames,
-          won: entry.won,
-          draw: entry.draw,
-          lost: entry.lost
-        })}`;
+        message += `   📊 ${entry.points} ${ctx.t('standings-points')} | ${ctx.t(
+          'standings-stats-short',
+          {
+            played: entry.playedGames,
+            won: entry.won,
+            draw: entry.draw,
+            lost: entry.lost,
+          }
+        )}`;
         message += ` | ${entry.goalsFor}-${entry.goalsAgainst} (${entry.goalDifference > 0 ? '+' : ''}${entry.goalDifference})`;
-
-        if (formStr) {
-          message += `   📈 ${formStr}\n`;
-        }
 
         message += `\n`;
       });
 
       const keyboard = new InlineKeyboard()
-        .text(`⚽ ${ctx.t('back-to-matches')}`, `back:matches:${leagueCode}`)
+        .text(`◀️ ${ctx.t('back-to-matches')}`, `back:matches:${leagueCode}`)
         .row()
         .text(`◀️ ${ctx.t('btn-menu')}`, 'back:main');
 
@@ -78,8 +69,13 @@ export function createStandingsComposer(matchService: MatchService): Composer<Bo
           parse_mode: 'Markdown',
         });
       } catch (error) {
-        if (error && typeof error === 'object' && 'description' in error &&
-            typeof error.description === 'string' && error.description.includes('message is not modified')) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'description' in error &&
+          typeof error.description === 'string' &&
+          error.description.includes('message is not modified')
+        ) {
           await ctx.answerCallbackQuery();
           return;
         }
