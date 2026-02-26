@@ -4,8 +4,6 @@ export const COMPETITION_CODES = {
   BUNDESLIGA: 'BL1',
   SERIE_A: 'SA',
   LIGUE_1: 'FL1',
-  CHAMPIONS_LEAGUE: 'CL',
-  EREDIVISIE: 'DED',
 } as const;
 
 export const COMPETITION_NAMES: Record<string, string> = {
@@ -14,8 +12,6 @@ export const COMPETITION_NAMES: Record<string, string> = {
   BL1: 'Bundesliga',
   SA: 'Serie A',
   FL1: 'Ligue 1',
-  CL: 'Champions League',
-  DED: 'Eredivisie',
 };
 
 export enum MatchStatus {

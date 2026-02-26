@@ -13,6 +13,7 @@ async function main() {
 
   // Initial sync + monitoring (non-blocking)
   syncService.syncUpcomingMatches()
+    .then(() => syncService.syncFinishedMatches())
     .then(() => syncService.scheduleMatchMonitoring())
     .catch((err) => log.error({ err }, 'initial sync failed'));
 

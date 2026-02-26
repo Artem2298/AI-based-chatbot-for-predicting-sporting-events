@@ -25,8 +25,9 @@ score = Skóre
 match-not-started = Zápas sa ešte nezačal
 team-stats = Štatistiky tímov
 get-ai-prediction = Získať AI predpoveď
-back-to-matches = K zápasom
+back-to-matches = K zoznamu zápasov
 error-loading-details = Chyba pri načítaní detailov
+bet-select = Vyberte prognózu
 
 upcoming-matches = Nadchádzajúce zápasy
 match-click-hint = Klikni na číslo zápasu pre detaily
@@ -85,17 +86,17 @@ predict-title-offsides = OFSAJDY
 predict-title-total = CELKOVÉ GÓLY (O/U 2.5)
 predict-title-btts = OBA TÍMY DAJÚ GÓL
 
-predict-prob-title = PRAVDEPODOBNOSTI:
+predict-prob-title = PRAVDEPODOBNOSTI
 predict-prob-home = { $team }
 predict-prob-draw = Remíza
 predict-prob-away = { $team }
 
-predict-recomm-title = ODPORÚČANIE:
+predict-recomm-title = ODPORÚČANIE
 predict-recomm-win = Výhra { $team }
 predict-recomm-draw = Remíza
 
-predict-conf-title = DÔVERA:
-predict-reason-title = ODÔVODNENIE:
+predict-conf-title = DÔVERA
+predict-reason-title = ODÔVODNENIE
 predict-disclaimer = _Predpoveď nezaručuje výsledok_
 
 predict-goals-over = Celkom viac ako { $val }:
@@ -119,10 +120,24 @@ btn-unfollow = Prestať sledovať
 notify-subscribed = Budete dostávať oznámenia o tomto zápase
 notify-unsubscribed = Oznámenia vypnuté
 
+notify-pre-match-title = Zápas začína za 15 minút!
+notify-post-match-title = Zápas skončil!
+notify-no-predictions = 📋 Nemáte žiadne predpovede pre tento zápas
+notify-your-predictions = 📊 Vaše predpovede:
+notify-type-outcome = Výsledok
+notify-type-total = Celkové góly
+notify-type-btts = Oba tímy dajú gól
+notify-type-corners = Rohové kopy
+notify-type-cards = Karty
+notify-type-offsides = Ofsajdy
+
 standings-title = Tabuľka: { $league }
 standings-error = Chyba načítania tabuľky.
 standings-loading = Načítavam tabuľku...
 standings-not-found = Tabuľka nebola nájdená
 standings-season = Sezóna { $start }/{ $end }
-standings-points = bodov
+standings-points = Skóre
 standings-stats-short = Z:{ $played } V:{ $won } R:{ $draw } P:{ $lost }
+standings-header-form = Forma
+standings-header-goals = Góly
+standings-header-gd = Rozdiel v góloch

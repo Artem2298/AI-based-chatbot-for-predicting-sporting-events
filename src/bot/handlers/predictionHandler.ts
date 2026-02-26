@@ -1,16 +1,16 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MatchService } from '@/services/matchService';
-import { PredictionService } from '@/services/predictionService';
+import { PredictionService } from '@/services/prediction';
 import { DbService } from '@/services/dbService';
 import { userMatchesState } from './matchHandler';
 import {
   formatOutcomePrediction,
-  formatCornersPrediction,
-  formatCardsPrediction,
-  formatOffsidesPrediction,
+  // formatCornersPrediction,
+  // formatCardsPrediction,
+  // formatOffsidesPrediction,
   formatTotalPrediction,
   formatBttsPrediction,
-} from './formatters/predictionFormatter';
+} from '@/bot/handlers/formatters/predictionFormatter';
 import { BotContext } from '@/types/context';
 import { createLogger } from '@/utils/logger';
 
@@ -36,11 +36,8 @@ export function createPredictionComposer(
 ⚽ ${t('predict-title-outcome')}
 ⚽ ${t('predict-title-total')}
 🤝 ${t('predict-title-btts')}
-🚩 ${t('predict-title-corners')}
-🟨 ${t('predict-title-cards')}
-⚠️ ${t('predict-title-offsides')}
 
-${t('league-select')} ⬇️
+${t('bet-select')} ⬇️
     `.trim();
 
     const keyboard = new InlineKeyboard()
@@ -53,21 +50,21 @@ ${t('league-select')} ⬇️
       .row()
       .text(`🤝 ${ctx.t('predict-btn-btts')}`, `predict_type:btts:${matchId}`)
       .row()
-      .text(
-        `🚩 ${ctx.t('predict-title-corners').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-        `predict_type:corners:${matchId}`
-      )
-      .row()
-      .text(
-        `🟨 ${ctx.t('predict-title-cards').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-        `predict_type:cards:${matchId}`
-      )
-      .row()
-      .text(
-        `⚠️ ${ctx.t('predict-title-offsides').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-        `predict_type:offsides:${matchId}`
-      )
-      .row()
+      // .text(
+      //   `🚩 ${ctx.t('predict-title-corners').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
+      //   `predict_type:corners:${matchId}`
+      // )
+      // .row()
+      // .text(
+      //   `🟨 ${ctx.t('predict-title-cards').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
+      //   `predict_type:cards:${matchId}`
+      // )
+      // .row()
+      // .text(
+      //   `⚠️ ${ctx.t('predict-title-offsides').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
+      //   `predict_type:offsides:${matchId}`
+      // )
+      // .row()
       .text(
         `◀️ ${ctx.t('btn-to-match')}`,
         `match:${getMatchIndex(ctx.from.id, matchId)}`
@@ -80,13 +77,13 @@ ${t('league-select')} ⬇️
   });
 
   composer.callbackQuery(
-    /^predict_type:(outcome|corners|cards|offsides|total|btts):(\d+)$/,
+    /^predict_type:(outcome|total|btts):(\d+)$/,
     async (ctx) => {
       const type = ctx.match[1] as
         | 'outcome'
-        | 'corners'
-        | 'cards'
-        | 'offsides'
+        // | 'corners'
+        // | 'cards'
+        // | 'offsides'
         | 'total'
         | 'btts';
       const matchId = parseInt(ctx.match[2]);
@@ -100,9 +97,9 @@ ${t('league-select')} ⬇️
 
         const typeEmoji = {
           outcome: '⚽',
-          corners: '🚩',
-          cards: '🟨',
-          offsides: '⚠️',
+          // corners: '🚩',
+          // cards: '🟨',
+          // offsides: '⚠️',
           total: '⚽',
           btts: '🤝',
         }[type];
@@ -140,21 +137,23 @@ ${t('league-select')} ⬇️
           case 'outcome':
             message = formatOutcomePrediction(match, prediction, t);
             break;
-          case 'corners':
-            message = formatCornersPrediction(match, prediction, t);
-            break;
-          case 'cards':
-            message = formatCardsPrediction(match, prediction, t);
-            break;
-          case 'offsides':
-            message = formatOffsidesPrediction(match, prediction, t);
-            break;
+          // case 'corners':
+          //   message = formatCornersPrediction(match, prediction, t);
+          //   break;
+          // case 'cards':
+          //   message = formatCardsPrediction(match, prediction, t);
+          //   break;
+          // case 'offsides':
+          //   message = formatOffsidesPrediction(match, prediction, t);
+          //   break;
           case 'total':
             message = formatTotalPrediction(match, prediction, t);
             break;
           case 'btts':
             message = formatBttsPrediction(match, prediction, t);
             break;
+          default:
+            message = ctx.t('predict-error');
         }
 
         const keyboard = new InlineKeyboard()
@@ -174,7 +173,10 @@ ${t('league-select')} ⬇️
           parse_mode: 'Markdown',
         });
       } catch (error) {
-        log.error({ matchId, type, err: error }, 'failed to generate prediction');
+        log.error(
+          { matchId, type, err: error },
+          'failed to generate prediction'
+        );
 
         let errorMessage = ctx.t('predict-error');
 

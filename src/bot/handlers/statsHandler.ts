@@ -39,7 +39,7 @@ export function createStatsComposer(
         matchDetails.competitionCode
       );
 
-      let message = `📊 ${ctx.t('stats-title')}: ${ctx.t('stats-last-matches')}\n\n`;
+      let message = `📊 ${ctx.t('stats-last-matches')}\n\n`;
 
       message += `🏠 ${matchDetails.homeTeam.toUpperCase()}\n`;
       message += `━━━━━━━━━━━━━━━━━━━━\n`;
@@ -313,13 +313,6 @@ export function createStatsComposer(
     }
   });
 
-  composer.callbackQuery(/^stats:full:(\d+)$/, async (ctx) => {
-    await ctx.answerCallbackQuery({
-      text: ctx.t('stats-full-teaser'),
-      show_alert: true,
-    });
-  });
-
   return composer;
 }
 
@@ -329,23 +322,25 @@ function createStatsKeyboard(
   matchIndex: number
 ): InlineKeyboard {
   const t = ctx.t.bind(ctx);
-  return new InlineKeyboard()
-    .text(`📊 ${t('stats-basic')}`, `stats:basic:${matchId}`)
-    .row()
-    .text(`🏠 ${t('stats-home')}`, `stats:home:${matchId}`)
-    .row()
-    .text(`✈️ ${t('stats-away')}`, `stats:away:${matchId}`)
-    .row()
-    .text(`📜 ${t('stats-h2h')}`, `stats:h2h:${matchId}`)
-    .row()
-    .text(
-      `📈 ${t('stats-full')} (${t('btn-refresh').replace('🔄 ', '').toLowerCase()})`,
-      `stats:full:${matchId}`
-    )
-    .row()
-    .text(`🎯 ${t('predict-ai')}`, `predict:${matchId}`)
-    .row()
-    .text(`◀️ ${t('btn-to-match')}`, `match:${matchIndex}`);
+  return (
+    new InlineKeyboard()
+      .text(`📊 ${t('stats-basic')}`, `stats:basic:${matchId}`)
+      .row()
+      .text(`🏠 ${t('stats-home')}`, `stats:home:${matchId}`)
+      .row()
+      .text(`✈️ ${t('stats-away')}`, `stats:away:${matchId}`)
+      .row()
+      .text(`📜 ${t('stats-h2h')}`, `stats:h2h:${matchId}`)
+      .row()
+      // .text(
+      //   `📈 ${t('stats-full')} (${t('btn-refresh').replace('🔄 ', '').toLowerCase()})`,
+      //   `stats:full:${matchId}`
+      // )
+      // .row()
+      .text(`🎯 ${t('predict-ai')}`, `predict:${matchId}`)
+      .row()
+      .text(`◀️ ${t('btn-to-match')}`, `match:${matchIndex}`)
+  );
 }
 
 function getMatchIndex(userId: number, matchId: number): number {

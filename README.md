@@ -1,6 +1,6 @@
 # AI Sport Prediction Bot
 
-Telegram bot that provides AI-powered football match predictions, live statistics, and match notifications.
+Telegram bot that provides AI-powered football match predictions, and match notifications.
 
 ## Stack
 

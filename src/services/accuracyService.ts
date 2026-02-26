@@ -22,11 +22,11 @@ export class AccuracyService {
     const actualTotalGoals = actualScoreHome + actualScoreAway;
 
     // Types that can't be auto-evaluated (API doesn't provide this data)
-    const SKIP_TYPES = new Set(['corners', 'cards', 'offsides']);
+    // const SKIP_TYPES = new Set(['corners', 'cards', 'offsides']);
 
     for (const prediction of predictions) {
       if (prediction.accuracy) continue;
-      if (SKIP_TYPES.has(prediction.type)) continue;
+      // if (SKIP_TYPES.has(prediction.type)) continue;
 
       const content = prediction.content as Record<string, unknown>;
 
@@ -35,21 +35,39 @@ export class AccuracyService {
       let bttsCorrect: boolean | null = null;
 
       if (prediction.type === 'outcome') {
-        outcomeCorrect = this.evaluateOutcome(content, actualScoreHome, actualScoreAway);
+        outcomeCorrect = this.evaluateOutcome(
+          content,
+          actualScoreHome,
+          actualScoreAway
+        );
       }
 
       if (prediction.type === 'total') {
-        goalsOverUnderCorrect = this.evaluateGoalsOverUnder(content, actualTotalGoals);
+        goalsOverUnderCorrect = this.evaluateGoalsOverUnder(
+          content,
+          actualTotalGoals
+        );
       }
 
       if (prediction.type === 'btts') {
-        bttsCorrect = this.evaluateBtts(content, actualScoreHome, actualScoreAway);
+        bttsCorrect = this.evaluateBtts(
+          content,
+          actualScoreHome,
+          actualScoreAway
+        );
       }
 
       // Backward compat: old 'goals' records have both fields
       if (prediction.type === 'goals') {
-        goalsOverUnderCorrect = this.evaluateGoalsOverUnder(content, actualTotalGoals);
-        bttsCorrect = this.evaluateBtts(content, actualScoreHome, actualScoreAway);
+        goalsOverUnderCorrect = this.evaluateGoalsOverUnder(
+          content,
+          actualTotalGoals
+        );
+        bttsCorrect = this.evaluateBtts(
+          content,
+          actualScoreHome,
+          actualScoreAway
+        );
       }
 
       try {
@@ -65,9 +83,15 @@ export class AccuracyService {
             bttsCorrect,
           },
         });
-        log.info({ predictionId: prediction.id, type: prediction.type }, 'accuracy evaluated');
+        log.info(
+          { predictionId: prediction.id, type: prediction.type },
+          'accuracy evaluated'
+        );
       } catch (error) {
-        log.warn({ predictionId: prediction.id, err: error }, 'failed to save accuracy');
+        log.warn(
+          { predictionId: prediction.id, err: error },
+          'failed to save accuracy'
+        );
       }
     }
   }
@@ -126,12 +150,16 @@ export class AccuracyService {
     const goalsItems = all.filter((a) => a.goalsOverUnderCorrect !== null);
     const bttsItems = all.filter((a) => a.bttsCorrect !== null);
 
-    const calc = (items: typeof all, field: 'outcomeCorrect' | 'goalsOverUnderCorrect' | 'bttsCorrect') => {
+    const calc = (
+      items: typeof all,
+      field: 'outcomeCorrect' | 'goalsOverUnderCorrect' | 'bttsCorrect'
+    ) => {
       const correct = items.filter((a) => a[field]).length;
       return {
         total: items.length,
         correct,
-        percentage: items.length > 0 ? Math.round((correct / items.length) * 100) : 0,
+        percentage:
+          items.length > 0 ? Math.round((correct / items.length) * 100) : 0,
       };
     };
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { DbService, db } from '../../services/dbService';
 import { MatchService } from '../../services/matchService';
-import { PredictionService } from '../../services/predictionService';
+import { PredictionService } from '../../services/prediction';
 import { GeminiClient } from '../../api/ai/geminiClient';
 import { FootballDataClient } from '../../api/football-data/footballApi';
 import { CacheService } from '../../services/cacheService';

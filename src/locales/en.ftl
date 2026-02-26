@@ -25,8 +25,9 @@ score = Score
 match-not-started = Match not started yet
 team-stats = Team Stats
 get-ai-prediction = Get AI Prediction
-back-to-matches = Back
+back-to-matches = Back to matches
 error-loading-details = Error loading details
+bet-select = Select forecast
 
 upcoming-matches = Upcoming matches
 match-click-hint = Click match number for details
@@ -37,7 +38,7 @@ btn-next = Next
 btn-refresh = Refresh
 btn-other-predict = Other Prediction
 btn-stats = Stats
-btn-to-match = To match
+btn-to-match = Back to match
 btn-standings = Standings
 
 match-details = { $homeTeam } vs { $awayTeam }
@@ -90,12 +91,12 @@ predict-prob-home = { $team }
 predict-prob-draw = Draw
 predict-prob-away = { $team }
 
-predict-recomm-title = RECOMMENDATION:
+predict-recomm-title = RECOMMENDATION
 predict-recomm-win = { $team } to win
 predict-recomm-draw = Draw
 
-predict-conf-title = CONFIDENCE:
-predict-reason-title = REASONING:
+predict-conf-title = CONFIDENCE
+predict-reason-title = REASONING
 predict-disclaimer = Prediction does not guarantee results
 
 predict-goals-over = Total Over { $val }:
@@ -106,7 +107,7 @@ predict-total-expected = Expected total goals:
 predict-btts-yes = Both teams score - Yes:
 predict-btts-no = Both teams score - No:
 predict-btn-total = Total Over/Under 2.5
-predict-btn-btts = Both Teams To Score
+predict-btn-btts = Both teams to score
 predict-yes = Yes
 predict-no = No
 predict-expected-title = EXPECTED VALUES:
@@ -119,10 +120,24 @@ btn-unfollow = Unfollow
 notify-subscribed = You will receive notifications for this match
 notify-unsubscribed = Notifications disabled
 
+notify-pre-match-title = Match starts in 15 minutes!
+notify-post-match-title = Match finished!
+notify-no-predictions = 📋 You have no predictions for this match
+notify-your-predictions = 📊 Your predictions:
+notify-type-outcome = Outcome
+notify-type-total = Total
+notify-type-btts = BTTS
+notify-type-corners = Corners
+notify-type-cards = Cards
+notify-type-offsides = Offsides
+
 standings-title = Standings: { $league }
 standings-error = Error loading standings.
 standings-loading = Loading standings...
 standings-not-found = Standings not found
 standings-season = Season { $start }/{ $end }
-standings-points = pts
+standings-points = Points
 standings-stats-short = P:{ $played } W:{ $won } D:{ $draw } L:{ $lost }
+standings-header-form = Form
+standings-header-goals = Goals
+standings-header-gd = Goal difference

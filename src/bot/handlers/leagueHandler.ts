@@ -22,15 +22,14 @@ export function createLeagueComposer(
     const leagueCode = ctx.match[1];
     const userId = ctx.from.id;
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('loading-matches'),
-    });
+    await ctx.answerCallbackQuery({ text: 'Loading matches...' });
 
     try {
+      // Data should come fast from DB
       const matches = await matchService.getUpcomingMatches(leagueCode, 14);
 
       if (matches.length === 0) {
-        await ctx.reply(ctx.t('no-upcoming-matches'));
+        await ctx.reply('No upcoming matches found');
         return;
       }
 
@@ -43,7 +42,9 @@ export function createLeagueComposer(
       await showMatchesPage(ctx, userId, 0);
     } catch (error) {
       log.error({ leagueCode, err: error }, 'failed to fetch matches');
-      await ctx.reply(ctx.t('error-fetching-matches'));
+      await ctx.editMessageText(ctx.t('error-fetching-matches'), {
+         reply_markup: mainKeyboard
+      });
     }
   });
 

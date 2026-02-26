@@ -4,7 +4,7 @@ import { createLogger } from '@/utils/logger';
 import { FootballDataClient } from '@/api/football-data/footballApi';
 import { MatchService } from '@/services/matchService';
 import { CacheService } from '@/services/cacheService';
-import { PredictionService } from '@/services/predictionService';
+import { PredictionService } from '@/services/prediction';
 import { SyncService } from '@/services/syncService';
 import { AccuracyService } from '@/services/accuracyService';
 import { NotificationService } from '@/services/notificationService';
@@ -28,7 +28,7 @@ import {
 
 export const bot = new Bot<BotContext>(config.telegram.botToken);
 
-const i18n = new I18n<BotContext>({
+export const i18n = new I18n<BotContext>({
   defaultLocale: 'ru',
   directory: join(process.cwd(), 'src', 'locales'),
 });
