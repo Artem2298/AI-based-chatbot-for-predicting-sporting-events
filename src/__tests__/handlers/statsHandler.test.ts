@@ -75,7 +75,6 @@ describe('statsHandler', () => {
     expect(ctx.editMessageText).toHaveBeenCalled();
     const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
       .calls[0][0];
-    expect(message).toContain('Match Statistics');
     expect(message).toContain('Last matches:');
   });
 

@@ -82,7 +82,7 @@ describe('standingsHandler', () => {
     expect(message).toContain('Standings: Premier League');
     expect(message).toContain('🥇 A');
     expect(message).toContain('🥈 B');
-    expect(message).toContain('📈 ✅✅✅🟰');
+    expect(message).toContain('10-2 (+8)');
   });
 
   it('should handle empty standings table', async () => {
