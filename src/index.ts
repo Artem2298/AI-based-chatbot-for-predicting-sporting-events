@@ -1,9 +1,12 @@
+import http from 'http';
 import { bot, syncService } from './bot/bot';
 import { config } from './config';
 import { DbService } from './services/dbService';
 import { createLogger } from '@/utils/logger';
 
 const log = createLogger('app');
+
+const PORT = parseInt(process.env.PORT || '8080', 10);
 
 async function main() {
   log.info({ env: config.env }, 'starting AI Sport Prediction Bot');
@@ -16,6 +19,16 @@ async function main() {
     .then(() => syncService.syncFinishedMatches())
     .then(() => syncService.scheduleMatchMonitoring())
     .catch((err) => log.error({ err }, 'initial sync failed'));
+
+  // Health check server for Koyeb
+  http
+    .createServer((_req, res) => {
+      res.writeHead(200);
+      res.end('OK');
+    })
+    .listen(PORT, () => {
+      log.info({ port: PORT }, 'health check server started');
+    });
 
   log.info('bot is running');
 
