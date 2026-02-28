@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MatchService } from '@/services/matchService';
 import { BotContext } from '@/types/context';
 import { createLogger } from '@/utils/logger';
+import { getLeagueFlag } from '../utils/formatters';
 
 const log = createLogger('handler:standings');
 
@@ -27,7 +28,7 @@ export function createStandingsComposer(
         return;
       }
 
-      let message = `🏆 ${ctx.t('standings-title', { league: standings.competition.name })}\n`;
+      let message = `${getLeagueFlag(leagueCode)} ${ctx.t('standings-title', { league: standings.competition.name })}\n`;
       message += `${ctx.t('standings-season', {
         start: standings.season.startDate.substring(0, 4),
         end: standings.season.endDate.substring(0, 4),

@@ -9,6 +9,18 @@ const LOCALE_MAP: Record<string, string> = {
   pl: 'pl-PL',
 };
 
+const LEAGUE_FLAGS: Record<string, string> = {
+  PL: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+  PD: '🇪🇸',
+  BL1: '🇩🇪',
+  SA: '🇮🇹',
+  FL1: '🇫🇷',
+};
+
+export function getLeagueFlag(competitionCode: string): string {
+  return LEAGUE_FLAGS[competitionCode] || '🏆';
+}
+
 let currentLocale = 'ru-RU';
 
 export function setFormatterLocale(langCode: string): void {

@@ -55,6 +55,28 @@ npm run test:watch    # watch mode
 npm run test:coverage # with coverage report
 ```
 
+## Deployment
+
+The bot is deployed on [Koyeb](https://www.koyeb.com/) using Docker.
+
+```bash
+npm run build     # prisma generate && tsc && tsc-alias
+```
+
+Required environment variables on the hosting platform:
+
+| Variable             | Description                        |
+| -------------------- | ---------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string       |
+| `DIRECT_URL`         | PostgreSQL direct connection URL   |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API token             |
+| `FOOTBALL_API_KEY`   | football-data.org API key          |
+| `GEMINI_API_KEY`     | Google Gemini API key              |
+| `NODE_ENV`           | Set to `production`                |
+| `PORT`               | HTTP port for health checks (8080) |
+
+A built-in HTTP health check server responds on the configured port to keep the service alive.
+
 ## Project Structure
 
 ```

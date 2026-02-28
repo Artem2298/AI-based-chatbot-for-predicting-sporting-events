@@ -7,7 +7,7 @@ start-welcome =
     🎯 Co potrafię:
     
     • Pokazać terminarz meczów
-    • Analizować formę drużyn
+    • Pokaż statystyki drużyn
     • Generować prognozy AI na mecze
     
     Wybierz ligę, aby zacząć:

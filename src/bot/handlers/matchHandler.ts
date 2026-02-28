@@ -2,7 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MatchService } from '@/services/matchService';
 import { NotificationService } from '@/services/notificationService';
 import { DbService } from '@/services/dbService';
-import { formatDate, formatTime, formatMatchesList } from '../utils/formatters';
+import { formatDate, formatTime, formatMatchesList, getLeagueFlag } from '../utils/formatters';
 import { mainKeyboard } from '../keyboards/main.keyboard';
 import { Match } from '@/types/match.types';
 import { BotContext } from '@/types/context';

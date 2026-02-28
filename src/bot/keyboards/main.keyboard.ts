@@ -1,12 +1,13 @@
 import { InlineKeyboard } from 'grammy';
+import { getLeagueFlag } from '../utils/formatters';
 
 export const mainKeyboard = new InlineKeyboard()
-  .text('🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League', 'league:PL')
+  .text(`${getLeagueFlag('PL')} Premier League`, 'league:PL')
   .row()
-  .text('🇪🇸 La Liga', 'league:PD')
+  .text(`${getLeagueFlag('PD')} La Liga`, 'league:PD')
   .row()
-  .text('🇩🇪 Bundesliga', 'league:BL1')
+  .text(`${getLeagueFlag('BL1')} Bundesliga`, 'league:BL1')
   .row()
-  .text('🇮🇹 Serie A', 'league:SA')
+  .text(`${getLeagueFlag('SA')} Serie A`, 'league:SA')
   .row()
-  .text('🇫🇷 Ligue 1', 'league:FL1');
+  .text(`${getLeagueFlag('FL1')} Ligue 1`, 'league:FL1');

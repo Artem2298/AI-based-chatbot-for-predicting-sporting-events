@@ -11,33 +11,38 @@ import { BotContext } from '@/types/context';
 import { createLogger } from '@/utils/logger';
 
 const log = createLogger('handler:stats');
+const STATS_PER_PAGE = 5;
 
 export function createStatsComposer(
   matchService: MatchService
 ): Composer<BotContext> {
   const composer = new Composer<BotContext>();
 
-  composer.callbackQuery(/^stats:basic:(\d+)$/, async (ctx) => {
+  composer.callbackQuery(/^stats:basic:(\d+)(?::(\d+))?$/, async (ctx) => {
     const matchId = parseInt(ctx.match[1]);
+    const page = parseInt(ctx.match[2] || '0');
     const userId = ctx.from.id;
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('stats-loading'),
-    });
+    await ctx.answerCallbackQuery();
 
     try {
       const matchDetails = await matchService.getMatchDetails(matchId);
 
-      const homeTeamMatches = await matchService.getTeamLastMatches(
+      const homeTeamMatches = (await matchService.getTeamLastMatches(
         matchDetails.homeTeamId,
-        5,
+        15,
         matchDetails.competitionCode
-      );
-      const awayTeamMatches = await matchService.getTeamLastMatches(
+      )).slice();
+      const awayTeamMatches = (await matchService.getTeamLastMatches(
         matchDetails.awayTeamId,
-        5,
+        15,
         matchDetails.competitionCode
-      );
+      )).slice();
+
+      const maxLen = Math.max(homeTeamMatches.length, awayTeamMatches.length);
+      const totalPages = Math.ceil(maxLen / STATS_PER_PAGE);
+      const homePageMatches = homeTeamMatches.slice(page * STATS_PER_PAGE, (page + 1) * STATS_PER_PAGE);
+      const awayPageMatches = awayTeamMatches.slice(page * STATS_PER_PAGE, (page + 1) * STATS_PER_PAGE);
 
       let message = `📊 ${ctx.t('stats-last-matches')}\n\n`;
 
@@ -45,7 +50,7 @@ export function createStatsComposer(
       message += `━━━━━━━━━━━━━━━━━━━━\n`;
       message += `📈 ${ctx.t('stats-last-matches')}\n`;
 
-      homeTeamMatches.forEach((match) => {
+      homePageMatches.forEach((match) => {
         const emoji = getResultEmoji(match, matchDetails.homeTeam);
         message += `${emoji} ${formatMatchResult(match)}\n`;
       });
@@ -55,7 +60,7 @@ export function createStatsComposer(
       message += `━━━━━━━━━━━━━━━━━━━━\n`;
       message += `📈 ${ctx.t('stats-last-matches')}\n`;
 
-      awayTeamMatches.forEach((match) => {
+      awayPageMatches.forEach((match) => {
         const emoji = getResultEmoji(match, matchDetails.awayTeam);
         message += `${emoji} ${formatMatchResult(match)}\n`;
       });
@@ -63,7 +68,10 @@ export function createStatsComposer(
       const keyboard = createStatsKeyboard(
         ctx,
         matchId,
-        getMatchIndex(userId, matchId)
+        getMatchIndex(userId, matchId),
+        'basic',
+        page,
+        totalPages
       );
 
       await ctx.editMessageText(message, {
@@ -89,32 +97,34 @@ export function createStatsComposer(
     }
   });
 
-  composer.callbackQuery(/^stats:home:(\d+)$/, async (ctx) => {
+  composer.callbackQuery(/^stats:home:(\d+)(?::(\d+))?$/, async (ctx) => {
     const matchId = parseInt(ctx.match[1]);
+    const page = parseInt(ctx.match[2] || '0');
     const userId = ctx.from.id;
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('stats-loading'),
-    });
+    await ctx.answerCallbackQuery();
 
     try {
       const matchDetails = await matchService.getMatchDetails(matchId);
 
       const allMatches = await matchService.getTeamLastMatches(
         matchDetails.homeTeamId,
-        10,
+        50,
         matchDetails.competitionCode
       );
 
       const homeMatches = filterHomeMatches(
         allMatches,
         matchDetails.homeTeam
-      ).slice(0, 5);
+      ).slice(0, 15).slice().reverse();
+
+      const totalPages = Math.ceil(homeMatches.length / STATS_PER_PAGE);
+      const pageMatches = homeMatches.slice(page * STATS_PER_PAGE, (page + 1) * STATS_PER_PAGE);
 
       let message = `🏠 ${ctx.t('stats-home-title', { team: matchDetails.homeTeam })}\n\n`;
       message += `📈 ${ctx.t('stats-last-matches')}\n`;
 
-      homeMatches.forEach((match) => {
+      pageMatches.forEach((match) => {
         const emoji = getResultEmoji(match, matchDetails.homeTeam);
         message += `${emoji} ${formatMatchResult(match)}\n`;
       });
@@ -128,7 +138,10 @@ export function createStatsComposer(
       const keyboard = createStatsKeyboard(
         ctx,
         matchId,
-        getMatchIndex(userId, matchId)
+        getMatchIndex(userId, matchId),
+        'home',
+        page,
+        totalPages
       );
 
       await ctx.editMessageText(message, {
@@ -154,32 +167,34 @@ export function createStatsComposer(
     }
   });
 
-  composer.callbackQuery(/^stats:away:(\d+)$/, async (ctx) => {
+  composer.callbackQuery(/^stats:away:(\d+)(?::(\d+))?$/, async (ctx) => {
     const matchId = parseInt(ctx.match[1]);
+    const page = parseInt(ctx.match[2] || '0');
     const userId = ctx.from.id;
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('stats-loading'),
-    });
+    await ctx.answerCallbackQuery();
 
     try {
       const matchDetails = await matchService.getMatchDetails(matchId);
 
       const allMatches = await matchService.getTeamLastMatches(
         matchDetails.awayTeamId,
-        10,
+        50,
         matchDetails.competitionCode
       );
 
       const awayMatches = filterAwayMatches(
         allMatches,
         matchDetails.awayTeam
-      ).slice(0, 5);
+      ).slice(0, 15).slice().reverse();
+
+      const totalPages = Math.ceil(awayMatches.length / STATS_PER_PAGE);
+      const pageMatches = awayMatches.slice(page * STATS_PER_PAGE, (page + 1) * STATS_PER_PAGE);
 
       let message = `✈️ ${ctx.t('stats-away-title', { team: matchDetails.awayTeam })}\n\n`;
       message += `📈 ${ctx.t('stats-last-matches')}\n`;
 
-      awayMatches.forEach((match) => {
+      pageMatches.forEach((match) => {
         const emoji = getResultEmoji(match, matchDetails.awayTeam);
         message += `${emoji} ${formatMatchResult(match)}\n`;
       });
@@ -193,7 +208,10 @@ export function createStatsComposer(
       const keyboard = createStatsKeyboard(
         ctx,
         matchId,
-        getMatchIndex(userId, matchId)
+        getMatchIndex(userId, matchId),
+        'away',
+        page,
+        totalPages
       );
 
       await ctx.editMessageText(message, {
@@ -219,51 +237,60 @@ export function createStatsComposer(
     }
   });
 
-  composer.callbackQuery(/^stats:h2h:(\d+)$/, async (ctx) => {
+  composer.callbackQuery(/^stats:h2h:(\d+)(?::(\d+))?$/, async (ctx) => {
     const matchId = parseInt(ctx.match[1]);
+    const page = parseInt(ctx.match[2] || '0');
     const userId = ctx.from.id;
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('stats-loading'),
-    });
+    await ctx.answerCallbackQuery();
 
     try {
       const matchDetails = await matchService.getMatchDetails(matchId);
-      const h2hMatches = await matchService.getHeadToHead(matchId, 50);
+      const h2hMatches = (await matchService.getHeadToHead(
+        matchId, 15, matchDetails.homeTeamId, matchDetails.awayTeamId
+      )).slice();
 
       if (h2hMatches.length === 0) {
         await ctx.reply(ctx.t('stats-h2h-not-found'));
         return;
       }
 
-      const matchesToShow = h2hMatches.slice(0, 5);
+      const totalPages = Math.ceil(h2hMatches.length / STATS_PER_PAGE);
+      const pageMatches = h2hMatches.slice(page * STATS_PER_PAGE, (page + 1) * STATS_PER_PAGE);
+
+      // Stats calculated from ALL matches, not just current page
+      let homeWins = 0;
+      let draws = 0;
+      let awayWins = 0;
+
+      h2hMatches.forEach((match) => {
+        const isHomeTeamHome = match.homeTeam === matchDetails.homeTeam;
+        if (match.score.home! > match.score.away!) {
+          if (isHomeTeamHome) homeWins++; else awayWins++;
+        } else if (match.score.home! < match.score.away!) {
+          if (isHomeTeamHome) awayWins++; else homeWins++;
+        } else {
+          draws++;
+        }
+      });
 
       let message = `📜 ${ctx.t('stats-h2h')}\n`;
       message += `🏟️ ${matchDetails.homeTeam} vs ${matchDetails.awayTeam}\n\n`;
       message += `${ctx.t('stats-h2h-recent')}\n`;
 
-      let homeWins = 0;
-      let draws = 0;
-      let awayWins = 0;
-
-      matchesToShow.forEach((match, index) => {
+      pageMatches.forEach((match) => {
         const isHomeTeamHome = match.homeTeam === matchDetails.homeTeam;
 
         let emoji = '';
         if (match.score.home! > match.score.away!) {
           emoji = isHomeTeamHome ? '✅' : '❌';
-          if (isHomeTeamHome) homeWins++;
-          else awayWins++;
         } else if (match.score.home! < match.score.away!) {
           emoji = isHomeTeamHome ? '❌' : '✅';
-          if (isHomeTeamHome) awayWins++;
-          else homeWins++;
         } else {
           emoji = '🟰';
-          draws++;
         }
 
-        message += `${index + 1}. ${emoji} ${formatMatchResult(match)}    🏆 ${match.competition}\n`;
+        message += `${emoji} ${formatMatchResult(match)}\n`;
       });
 
       message += `\n📊 ${ctx.t('predict-prob-title')}\n`;
@@ -271,18 +298,21 @@ export function createStatsComposer(
       message += `🟰 ${ctx.t('predict-prob-draw')}: ${draws}\n`;
       message += `✈️ ${matchDetails.awayTeam}: ${awayWins} ${ctx.t('predict-recomm-win', { team: '' }).trim()}\n`;
 
-      const totalGoals = matchesToShow.reduce(
+      const totalGoals = h2hMatches.reduce(
         (sum, match) => sum + (match.score.home || 0) + (match.score.away || 0),
         0
       );
-      const avgGoals = (totalGoals / matchesToShow.length).toFixed(1);
+      const avgGoals = (totalGoals / h2hMatches.length).toFixed(1);
 
       message += `⚽ ${ctx.t('stats-avg-goals', { avg: avgGoals })}\n`;
 
       const keyboard = createStatsKeyboard(
         ctx,
         matchId,
-        getMatchIndex(userId, matchId)
+        getMatchIndex(userId, matchId),
+        'h2h',
+        page,
+        totalPages
       );
 
       try {
@@ -319,28 +349,34 @@ export function createStatsComposer(
 function createStatsKeyboard(
   ctx: BotContext,
   matchId: number,
-  matchIndex: number
+  matchIndex: number,
+  statsType: string = '',
+  currentPage: number = 0,
+  totalPages: number = 1
 ): InlineKeyboard {
   const t = ctx.t.bind(ctx);
-  return (
-    new InlineKeyboard()
-      .text(`📊 ${t('stats-basic')}`, `stats:basic:${matchId}`)
-      .row()
-      .text(`🏠 ${t('stats-home')}`, `stats:home:${matchId}`)
-      .row()
-      .text(`✈️ ${t('stats-away')}`, `stats:away:${matchId}`)
-      .row()
-      .text(`📜 ${t('stats-h2h')}`, `stats:h2h:${matchId}`)
-      .row()
-      // .text(
-      //   `📈 ${t('stats-full')} (${t('btn-refresh').replace('🔄 ', '').toLowerCase()})`,
-      //   `stats:full:${matchId}`
-      // )
-      // .row()
-      .text(`🎯 ${t('predict-ai')}`, `predict:${matchId}`)
-      .row()
-      .text(`◀️ ${t('btn-to-match')}`, `match:${matchIndex}`)
-  );
+  const keyboard = new InlineKeyboard();
+
+  if (totalPages > 1 && statsType) {
+    if (currentPage > 0) keyboard.text(`⬅️ ${t('btn-back')}`, `stats:${statsType}:${matchId}:${currentPage - 1}`);
+    if (currentPage < totalPages - 1) keyboard.text(`${t('btn-next')} ➡️`, `stats:${statsType}:${matchId}:${currentPage + 1}`);
+    keyboard.row();
+  }
+
+  keyboard
+    .text(`📊 ${t('stats-basic')}`, `stats:basic:${matchId}`)
+    .row()
+    .text(`🏠 ${t('stats-home')}`, `stats:home:${matchId}`)
+    .row()
+    .text(`✈️ ${t('stats-away')}`, `stats:away:${matchId}`)
+    .row()
+    .text(`📜 ${t('stats-h2h')}`, `stats:h2h:${matchId}`)
+    .row()
+    .text(`🎯 ${t('predict-ai')}`, `predict:${matchId}`)
+    .row()
+    .text(`◀️ ${t('btn-to-match')}`, `match:${matchIndex}`);
+
+  return keyboard;
 }
 
 function getMatchIndex(userId: number, matchId: number): number {
