@@ -7,7 +7,7 @@ start-welcome =
     🎯 Čo dokážem:
     
     • Ukázať plán zápasov
-    • Analyzovať formu tímov
+    • Zobraziť štatistiky tímov
     • Generovať AI predpovede na zápasy
     
     Vyberte ligu pre začiatok:

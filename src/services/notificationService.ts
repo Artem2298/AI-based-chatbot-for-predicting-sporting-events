@@ -3,6 +3,7 @@ import { db } from './dbService';
 import { withDbRetry } from '@/utils/retry';
 import { createLogger } from '@/utils/logger';
 import { i18n } from '@/bot/bot';
+import { getLeagueFlag } from '@/bot/utils/formatters';
 
 const log = createLogger('notification');
 
@@ -49,7 +50,8 @@ export class NotificationService {
     matchId: number,
     homeTeam: string,
     awayTeam: string,
-    competition: string
+    competition: string,
+    competitionCode: string = ''
   ): Promise<void> {
     const subs = await withDbRetry(
       () =>
@@ -71,7 +73,8 @@ export class NotificationService {
       try {
         const locale = sub.user.locale || 'ru';
         const title = i18n.t(locale, 'notify-pre-match-title');
-        const message = `🔔 ${title}\n\n🏟️ **${homeTeam}** vs **${awayTeam}**\n🏆 ${competition}`;
+        const flag = getLeagueFlag(competitionCode);
+        const message = `🔔 ${title}\n\n🏟️ **${homeTeam}** vs **${awayTeam}**\n${flag} ${competition}`;
 
         await this.api.sendMessage(Number(sub.user.telegramId), message, {
           parse_mode: 'Markdown',

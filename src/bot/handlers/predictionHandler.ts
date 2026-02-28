@@ -157,11 +157,11 @@ ${t('bet-select')} ⬇️
         }
 
         const keyboard = new InlineKeyboard()
-          .text(ctx.t('btn-refresh'), `predict_type:${type}:${matchId}`)
+          .text(`🔄 ${ctx.t('btn-refresh')}`, `predict_type:${type}:${matchId}`)
           .row()
-          .text(ctx.t('btn-other-predict'), `predict:${matchId}`)
+          .text(`🤖 ${ctx.t('btn-other-predict')}`, `predict:${matchId}`)
           .row()
-          .text(ctx.t('btn-stats'), `stats:basic:${matchId}`)
+          .text(`📊 ${ctx.t('btn-stats')}`, `stats:basic:${matchId}`)
           .row()
           .text(
             `◀️ ${ctx.t('btn-to-match')}`,

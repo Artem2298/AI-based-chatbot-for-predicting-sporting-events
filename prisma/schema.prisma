@@ -63,7 +63,7 @@ model Team {
 model Prediction {
   id        Int      @id @default(autoincrement())
   matchId   Int
-  type      String   // outcome, corners, cards, offsides, goals
+  type      String   // outcome, goals, btts
   locale    String   @default("en")
   content   Json
   createdAt DateTime @default(now())

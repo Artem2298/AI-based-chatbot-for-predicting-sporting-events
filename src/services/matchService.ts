@@ -386,7 +386,9 @@ export class MatchService {
 
   async getHeadToHead(
     matchId: number,
-    limit: number = 5
+    limit: number = 5,
+    homeTeamId?: number,
+    awayTeamId?: number
   ): Promise<MatchWithScore[]> {
     return this.getCached(
       `h2h:${matchId}:${limit}`,
@@ -405,7 +407,36 @@ export class MatchService {
         log.debug({ matchId, count: h2hMatches.length }, 'H2H matches found');
         return h2hMatches;
       },
-      3600
+      3600,
+      homeTeamId && awayTeamId
+        ? async () => {
+            const matches = await db.match.findMany({
+              where: {
+                status: 'FINISHED',
+                OR: [
+                  { homeTeamId, awayTeamId },
+                  { homeTeamId: awayTeamId, awayTeamId: homeTeamId },
+                ],
+              },
+              include: { homeTeam: true, awayTeam: true },
+              orderBy: { utcDate: 'desc' },
+              take: limit,
+            });
+            if (matches.length === 0) return null;
+            return matches.map((m) => ({
+              id: m.id,
+              homeTeam: m.homeTeam.name,
+              homeTeamId: m.homeTeam.id,
+              awayTeam: m.awayTeam.name,
+              awayTeamId: m.awayTeam.id,
+              date: m.utcDate,
+              status: m.status,
+              competition: m.competitionName,
+              competitionCode: m.competitionCode,
+              score: { home: m.scoreHome, away: m.scoreAway },
+            }));
+          }
+        : undefined
     );
   }
 

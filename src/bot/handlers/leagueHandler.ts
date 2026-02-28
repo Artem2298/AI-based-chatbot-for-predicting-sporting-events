@@ -51,8 +51,10 @@ export function createLeagueComposer(
   composer.callbackQuery('back:main', async (ctx) => {
     await ctx.answerCallbackQuery();
 
-    await ctx.reply(ctx.t('league-select'), {
+    const name = ctx.from.first_name || '';
+    await ctx.reply(ctx.t('start-welcome', { name }), {
       reply_markup: mainKeyboard,
+      parse_mode: 'Markdown',
     });
   });
 

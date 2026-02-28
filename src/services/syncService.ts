@@ -120,6 +120,7 @@ export class SyncService {
 
     let scheduled = 0;
     let reminders = 0;
+    let skippedLate = 0;
 
     for (const match of matches) {
       const now = Date.now();
@@ -131,12 +132,12 @@ export class SyncService {
           const delay = reminderTime - now;
           const timeout = setTimeout(() => {
             this.reminderTimeouts.delete(match.id);
-            this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName);
+            this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName, match.competitionCode);
           }, delay);
           this.reminderTimeouts.set(match.id, timeout);
           reminders++;
         } else if (match.utcDate.getTime() > now) {
-          this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName);
+          this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName, match.competitionCode);
         }
       }
 
@@ -147,7 +148,7 @@ export class SyncService {
       const monitorDeadline = expectedEndTime + MAX_MONITORING_TIME;
 
       if (now > monitorDeadline) {
-        this.doSingleCheck(match.id, match.competitionCode);
+        skippedLate++;
       } else if (now >= expectedEndTime) {
         const remaining = Math.round((monitorDeadline - now) / 60000);
         log.info(
@@ -194,20 +195,26 @@ export class SyncService {
     if (reminders > 0) {
       log.info({ count: reminders }, 'pre-match reminders scheduled');
     }
+
+    if (skippedLate > 0) {
+      log.info({ count: skippedLate }, 'late matches will be handled by periodic cron check');
+    }
   }
 
   private async sendPreMatchReminder(
     matchId: number,
     homeTeam: string,
     awayTeam: string,
-    competition: string
+    competition: string,
+    competitionCode: string
   ) {
     try {
       await this.notificationService.sendPreMatchReminders(
         matchId,
         homeTeam,
         awayTeam,
-        competition
+        competition,
+        competitionCode
       );
     } catch (error) {
       log.error({ matchId, err: error }, 'failed to send pre-match reminders');
@@ -236,10 +243,7 @@ export class SyncService {
 
   private async checkMatch(matchId: number, competitionCode: string) {
     try {
-      const updated = await withRetry(
-        () => this.matchService.refreshMatchFromApi(matchId),
-        { retries: 3, delayMs: 5000, label: `checkMatch(${matchId})` }
-      );
+      const updated = await this.matchService.refreshMatchFromApi(matchId);
 
       if (updated.status === 'FINISHED') {
         const interval = this.matchMonitors.get(matchId);
@@ -316,47 +320,55 @@ export class SyncService {
     this.standingsTimeouts.push(timeout);
   }
 
-  private async doSingleCheck(matchId: number, competitionCode: string) {
-    try {
-      const updated = await withRetry(
-        () => this.matchService.refreshMatchFromApi(matchId),
-        { retries: 2, delayMs: 5000, label: `lateCheck(${matchId})` }
-      );
+  private async checkUnfinishedMatches() {
+    const cutoff = new Date(Date.now() - MATCH_DURATION_BUFFER);
 
-      if (
-        updated.status === 'FINISHED' &&
-        updated.score.home !== null &&
-        updated.score.away !== null
-      ) {
-        log.info(
-          { matchId, homeTeam: updated.homeTeam, awayTeam: updated.awayTeam, scoreHome: updated.score.home, scoreAway: updated.score.away },
-          'match finished (late check)'
-        );
-        await this.onMatchFinished(
-          matchId,
-          competitionCode,
-          updated.homeTeam,
-          updated.awayTeam,
-          updated.score.home,
-          updated.score.away
-        );
-      }
+    const matches = await withDbRetry(
+      () => db.match.findMany({
+        where: {
+          utcDate: { lt: cutoff },
+          status: { notIn: ['FINISHED', 'CANCELLED', 'POSTPONED', 'SUSPENDED', 'AWARDED'] },
+        },
+        select: { id: true, competitionCode: true },
+      }),
+      'checkUnfinished'
+    );
 
-      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_PAUSE));
-    } catch (error) {
-      log.error({ matchId, err: error }, 'late check failed');
+    if (matches.length === 0) return;
+
+    // Skip matches already being monitored by startMatchMonitor
+    const unmonitored = matches.filter(
+      (m) => !this.matchMonitors.has(m.id) && !this.matchTimeouts.has(m.id)
+    );
+
+    if (unmonitored.length === 0) {
+      log.debug({ total: matches.length }, 'all unfinished matches already monitored');
+      return;
+    }
+
+    log.info({ count: unmonitored.length, skipped: matches.length - unmonitored.length }, 'checking unfinished matches');
+
+    for (const match of unmonitored) {
+      await this.checkMatch(match.id, match.competitionCode);
+      await new Promise((resolve) => setTimeout(resolve, BACKFILL_PAUSE));
     }
   }
 
   scheduleDailySync() {
-    const job = schedule('0 6 * * *', async () => {
+    const dailyJob = schedule('0 6 * * *', async () => {
       log.info('daily sync triggered');
       await this.syncUpcomingMatches();
       await this.scheduleMatchMonitoring();
     });
-
-    this.cronJobs.push(job);
+    this.cronJobs.push(dailyJob);
     log.info('daily sync scheduled at 06:00 UTC');
+
+    const matchCheckJob = schedule('*/15 * * * *', async () => {
+      log.debug('checking for unfinished matches');
+      await this.checkUnfinishedMatches();
+    });
+    this.cronJobs.push(matchCheckJob);
+    log.info('match result check scheduled every 15 minutes');
   }
 
   stopSchedule() {

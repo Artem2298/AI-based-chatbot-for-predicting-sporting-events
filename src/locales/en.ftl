@@ -7,7 +7,7 @@ start-welcome =
     🎯 What I can do:
     
     • Show match schedules
-    • Analyze team form
+    • Show team statistics
     • Generate AI match predictions
     
     Choose a league to start:
