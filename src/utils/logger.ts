@@ -5,6 +5,7 @@ const isDev = config.env !== 'production';
 
 export const logger = pino({
   level: config.logLevel,
+  ...(!isDev && { base: undefined }),
   ...(isDev && {
     transport: {
       target: 'pino-pretty',
