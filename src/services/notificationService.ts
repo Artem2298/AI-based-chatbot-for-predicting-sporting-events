@@ -71,7 +71,7 @@ export class NotificationService {
 
     for (const sub of subs) {
       try {
-        const locale = sub.user.locale || 'ru';
+        const locale = sub.user.locale || 'en';
         const title = i18n.t(locale, 'notify-pre-match-title');
         const flag = getLeagueFlag(competitionCode);
         const message = `🔔 ${title}\n\n🏟️ **${homeTeam}** vs **${awayTeam}**\n${flag} ${competition}`;
@@ -120,10 +120,11 @@ export class NotificationService {
 
     for (const sub of subs) {
       try {
+        const locale = sub.user.locale || 'ru';
         const userPredictions = await db.userPrediction.findMany({
           where: {
             userId: sub.user.id,
-            prediction: { matchId },
+            prediction: { matchId, locale },
           },
           include: {
             prediction: {
@@ -132,7 +133,6 @@ export class NotificationService {
           },
         });
 
-        const locale = sub.user.locale || 'ru';
         const title = i18n.t(locale, 'notify-post-match-title');
         
         let message = `🏁 ${title}\n\n`;
