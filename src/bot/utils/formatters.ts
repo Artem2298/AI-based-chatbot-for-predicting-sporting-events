@@ -32,6 +32,7 @@ export function formatDate(date: Date): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'Europe/Berlin',
   });
 }
 
@@ -39,6 +40,7 @@ export function formatTime(date: Date): string {
   return date.toLocaleTimeString(currentLocale, {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Europe/Berlin',
   });
 }
 
