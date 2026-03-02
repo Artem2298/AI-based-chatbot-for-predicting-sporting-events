@@ -120,7 +120,7 @@ export class NotificationService {
 
     for (const sub of subs) {
       try {
-        const locale = sub.user.locale || 'ru';
+        const locale = sub.user.locale || 'en';
         const userPredictions = await db.userPrediction.findMany({
           where: {
             userId: sub.user.id,
