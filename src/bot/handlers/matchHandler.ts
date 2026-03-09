@@ -37,9 +37,7 @@ export function createMatchComposer(
       return;
     }
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('loading-details'),
-    });
+    await ctx.answerCallbackQuery();
 
     const match = state.matches[matchIndex];
 
@@ -95,7 +93,11 @@ export function createMatchComposer(
         `back:matches:${state.leagueCode}`
       );
 
-      await ctx.editMessageText(message, {
+      try {
+        await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      } catch {}
+
+      await ctx.reply(message, {
         reply_markup: keyboard,
         parse_mode: 'Markdown',
       });
@@ -171,7 +173,10 @@ export function createMatchComposer(
     }
 
     await ctx.answerCallbackQuery();
-    await showMatchesPage(ctx, userId, state.currentPage);
+    try {
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+    } catch {}
+    await showMatchesPage(ctx, userId, state.currentPage, true);
   });
 
   return composer;
@@ -237,7 +242,8 @@ async function renderMatchDetails(
 export async function showMatchesPage(
   ctx: BotContext,
   userId: number,
-  page: number
+  page: number,
+  forceNew: boolean = false
 ) {
   const state = userMatchesState.get(userId);
 
@@ -298,16 +304,23 @@ export async function showMatchesPage(
     .row();
   keyboard.text(`◀️ ${ctx.t('btn-menu')}`, 'back:main');
 
-  try {
-    await ctx.editMessageText(message, {
-      reply_markup: keyboard,
-      parse_mode: 'Markdown',
-    });
-  } catch {
+  if (forceNew) {
     await ctx.reply(message, {
       reply_markup: keyboard,
       parse_mode: 'Markdown',
     });
+  } else {
+    try {
+      await ctx.editMessageText(message, {
+        reply_markup: keyboard,
+        parse_mode: 'Markdown',
+      });
+    } catch {
+      await ctx.reply(message, {
+        reply_markup: keyboard,
+        parse_mode: 'Markdown',
+      });
+    }
   }
 }
 

@@ -25,9 +25,10 @@ export function createPredictionComposer(
   composer.callbackQuery(/^predict:(\d+)$/, async (ctx) => {
     const matchId = parseInt(ctx.match[1]);
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('predict-ai'),
-    });
+    await ctx.answerCallbackQuery();
+    try {
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+    } catch {}
 
     const t = ctx.t.bind(ctx);
     const message = `
@@ -50,27 +51,12 @@ ${t('bet-select')} ⬇️
       .row()
       .text(`🤝 ${ctx.t('predict-btn-btts')}`, `predict_type:btts:${matchId}`)
       .row()
-      // .text(
-      //   `🚩 ${ctx.t('predict-title-corners').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-      //   `predict_type:corners:${matchId}`
-      // )
-      // .row()
-      // .text(
-      //   `🟨 ${ctx.t('predict-title-cards').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-      //   `predict_type:cards:${matchId}`
-      // )
-      // .row()
-      // .text(
-      //   `⚠️ ${ctx.t('predict-title-offsides').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
-      //   `predict_type:offsides:${matchId}`
-      // )
-      // .row()
       .text(
         `◀️ ${ctx.t('btn-to-match')}`,
         `match:${getMatchIndex(ctx.from.id, matchId)}`
       );
 
-    await ctx.editMessageText(message, {
+    await ctx.reply(message, {
       reply_markup: keyboard,
       parse_mode: 'Markdown',
     });
@@ -88,18 +74,16 @@ ${t('bet-select')} ⬇️
         | 'btts';
       const matchId = parseInt(ctx.match[2]);
 
-      await ctx.answerCallbackQuery({
-        text: ctx.t('predict-loading'),
-      });
+      await ctx.answerCallbackQuery();
+      try {
+        await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      } catch {}
 
       try {
         const match = await matchService.getMatchDetails(matchId);
 
         const typeEmoji = {
           outcome: '⚽',
-          // corners: '🚩',
-          // cards: '🟨',
-          // offsides: '⚠️',
           total: '⚽',
           btts: '🤝',
         }[type];
@@ -108,7 +92,7 @@ ${t('bet-select')} ⬇️
           .t(`predict-title-${type}`)
           .replace(/🤖 AI ПРОГНОЗ: /i, '');
 
-        await ctx.editMessageText(
+        const loadingMsg = await ctx.reply(
           `${ctx.t('predict-process')}\n\n` +
             `⚽ ${match.homeTeam} vs ${match.awayTeam}\n` +
             `${typeEmoji} ${typeName}\n\n` +
@@ -168,10 +152,12 @@ ${t('bet-select')} ⬇️
             `match:${getMatchIndex(ctx.from.id, matchId)}`
           );
 
-        await ctx.editMessageText(message, {
-          reply_markup: keyboard,
-          parse_mode: 'Markdown',
-        });
+        await ctx.api.editMessageText(
+          ctx.chat!.id,
+          loadingMsg.message_id,
+          message,
+          { reply_markup: keyboard, parse_mode: 'Markdown' }
+        );
       } catch (error) {
         log.error(
           { matchId, type, err: error },
