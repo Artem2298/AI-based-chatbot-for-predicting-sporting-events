@@ -1,4 +1,4 @@
-import { Api } from 'grammy';
+import { Api, InlineKeyboard } from 'grammy';
 import { db } from './dbService';
 import { withDbRetry } from '@/utils/retry';
 import { createLogger } from '@/utils/logger';
@@ -76,8 +76,12 @@ export class NotificationService {
         const flag = getLeagueFlag(competitionCode);
         const message = `🔔 ${title}\n\n🏟️ **${homeTeam}** vs **${awayTeam}**\n${flag} ${competition}`;
 
+        const keyboard = new InlineKeyboard()
+          .text(`◀️ ${i18n.t(locale, 'btn-menu')}`, 'back:main');
+
         await this.api.sendMessage(Number(sub.user.telegramId), message, {
           parse_mode: 'Markdown',
+          reply_markup: keyboard,
         });
 
         await db.matchSubscription.update({
@@ -159,8 +163,12 @@ export class NotificationService {
           }
         }
 
+        const keyboard = new InlineKeyboard()
+          .text(`◀️ ${i18n.t(locale, 'btn-menu')}`, 'back:main');
+
         await this.api.sendMessage(Number(sub.user.telegramId), message, {
           parse_mode: 'Markdown',
+          reply_markup: keyboard,
         });
 
         await db.matchSubscription.update({

@@ -14,9 +14,10 @@ export function createStandingsComposer(
   composer.callbackQuery(/^standings:(.+)$/, async (ctx) => {
     const leagueCode = ctx.match[1];
 
-    await ctx.answerCallbackQuery({
-      text: ctx.t('standings-loading'),
-    });
+    await ctx.answerCallbackQuery();
+    try {
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+    } catch {}
 
     try {
       const standings = await matchService.getStandings(leagueCode);
@@ -64,28 +65,10 @@ export function createStandingsComposer(
         .row()
         .text(`◀️ ${ctx.t('btn-menu')}`, 'back:main');
 
-      try {
-        await ctx.editMessageText(message, {
-          reply_markup: keyboard,
-          parse_mode: 'Markdown',
-        });
-      } catch (error) {
-        if (
-          error &&
-          typeof error === 'object' &&
-          'description' in error &&
-          typeof error.description === 'string' &&
-          error.description.includes('message is not modified')
-        ) {
-          await ctx.answerCallbackQuery();
-          return;
-        }
-
-        await ctx.reply(message, {
-          reply_markup: keyboard,
-          parse_mode: 'Markdown',
-        });
-      }
+      await ctx.reply(message, {
+        reply_markup: keyboard,
+        parse_mode: 'Markdown',
+      });
     } catch (error) {
       log.error({ leagueCode, err: error }, 'failed to fetch standings');
       await ctx.reply(ctx.t('standings-error'));

@@ -3,6 +3,7 @@ import { bot, syncService } from './bot/bot';
 import { config } from './config';
 import { DbService } from './services/dbService';
 import { createLogger } from '@/utils/logger';
+import { array } from 'zod';
 
 const log = createLogger('app');
 
