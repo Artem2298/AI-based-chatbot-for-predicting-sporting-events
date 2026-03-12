@@ -4,3 +4,4 @@ export { createPaginationComposer } from './paginationHandler';
 export { createStatsComposer } from './statsHandler';
 export { createPredictionComposer } from './predictionHandler';
 export { createStandingsComposer } from './standingsHandler';
+export { createTimezoneComposer } from './timezoneHandler';

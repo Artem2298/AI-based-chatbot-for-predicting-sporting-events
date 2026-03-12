@@ -181,14 +181,3 @@ ALTER TABLE "MatchSubscription" ADD CONSTRAINT "MatchSubscription_matchId_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "PredictionAccuracy" ADD CONSTRAINT "PredictionAccuracy_predictionId_fkey" FOREIGN KEY ("predictionId") REFERENCES "Prediction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
-┌─────────────────────────────────────────────────────────┐
-│  Update available 6.7.0 -> 7.4.0                        │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘

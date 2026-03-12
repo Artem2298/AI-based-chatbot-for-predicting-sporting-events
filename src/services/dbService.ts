@@ -35,7 +35,7 @@ export class DbService {
   public static async getUserByTelegramId(telegramId: number) {
     return await this.getInstance().user.findUnique({
       where: { telegramId: BigInt(telegramId) },
-      select: { id: true }
+      select: { id: true, timezone: true }
     });
   }
 }

@@ -22,6 +22,7 @@ model User {
   firstName     String?
   lastName      String?
   locale        String   @default("en")
+  timezone      String?
   isPremium     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

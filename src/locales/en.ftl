@@ -141,3 +141,9 @@ standings-stats-short = P:{ $played } W:{ $won } D:{ $draw } L:{ $lost }
 standings-header-form = Form
 standings-header-goals = Goals
 standings-header-gd = Goal difference
+
+# Timezone
+tz-select = 🌍 Select your region:
+tz-select-city = 🕐 Select your city:
+tz-saved = ✅ Timezone set: **{$city}**
+tz-change = 🕐 Change timezone

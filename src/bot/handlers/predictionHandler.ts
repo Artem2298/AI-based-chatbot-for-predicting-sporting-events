@@ -92,7 +92,7 @@ ${t('bet-select')} ⬇️
           .t(`predict-title-${type}`)
           .replace(/🤖 AI ПРОГНОЗ: /i, '');
 
-        const loadingMsg = await ctx.reply(
+        await ctx.reply(
           `${ctx.t('predict-process')}\n\n` +
             `⚽ ${match.homeTeam} vs ${match.awayTeam}\n` +
             `${typeEmoji} ${typeName}\n\n` +
@@ -100,6 +100,10 @@ ${t('bet-select')} ⬇️
             `${ctx.t('predict-analyzing')}\n\n` +
             `${ctx.t('predict-wait')}`,
           { parse_mode: 'Markdown' }
+        );
+
+        const gifMsg = await ctx.replyWithAnimation(
+          'CgACAgQAAxkBAAIENWmyisd53KHW7UsY5SQ8MljcHhFKAAIoAwACfDlcU1JZFHE_23JcOgQ'
         );
 
         let dbUserId: number | undefined;
@@ -152,12 +156,11 @@ ${t('bet-select')} ⬇️
             `match:${getMatchIndex(ctx.from.id, matchId)}`
           );
 
-        await ctx.api.editMessageText(
-          ctx.chat!.id,
-          loadingMsg.message_id,
-          message,
-          { reply_markup: keyboard, parse_mode: 'Markdown' }
-        );
+        await ctx.api.deleteMessage(ctx.chat!.id, gifMsg.message_id);
+        await ctx.reply(message, {
+          reply_markup: keyboard,
+          parse_mode: 'Markdown',
+        });
       } catch (error) {
         log.error(
           { matchId, type, err: error },

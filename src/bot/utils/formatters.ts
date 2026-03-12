@@ -22,9 +22,14 @@ export function getLeagueFlag(competitionCode: string): string {
 }
 
 let currentLocale = 'ru-RU';
+let currentTimezone = 'Europe/Berlin';
 
 export function setFormatterLocale(langCode: string): void {
   currentLocale = LOCALE_MAP[langCode] || 'en-GB';
+}
+
+export function setFormatterTimezone(tz: string): void {
+  currentTimezone = tz;
 }
 
 export function formatDate(date: Date): string {
@@ -32,7 +37,7 @@ export function formatDate(date: Date): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    timeZone: 'Europe/Berlin',
+    timeZone: currentTimezone,
   });
 }
 
@@ -40,7 +45,7 @@ export function formatTime(date: Date): string {
   return date.toLocaleTimeString(currentLocale, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Europe/Berlin',
+    timeZone: currentTimezone,
   });
 }
 

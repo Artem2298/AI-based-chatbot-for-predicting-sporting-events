@@ -141,3 +141,9 @@ standings-stats-short = І:{ $played } В:{ $won } Н:{ $draw } П:{ $lost }
 standings-header-form = Форма
 standings-header-goals = Голи
 standings-header-gd = Різниця голів
+
+# Timezone
+tz-select = 🌍 Оберіть регіон:
+tz-select-city = 🕐 Оберіть місто:
+tz-saved = ✅ Часовий пояс встановлено: **{$city}**
+tz-change = 🕐 Змінити часовий пояс
