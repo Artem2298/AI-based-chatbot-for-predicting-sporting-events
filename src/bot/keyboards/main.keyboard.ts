@@ -10,4 +10,6 @@ export const mainKeyboard = new InlineKeyboard()
   .row()
   .text(`${getLeagueFlag('SA')} Serie A`, 'league:SA')
   .row()
-  .text(`${getLeagueFlag('FL1')} Ligue 1`, 'league:FL1');
+  .text(`${getLeagueFlag('FL1')} Ligue 1`, 'league:FL1')
+  .row()
+  .text('🕐 Timezone', 'tz:change');

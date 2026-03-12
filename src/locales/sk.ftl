@@ -141,3 +141,9 @@ standings-stats-short = Z:{ $played } V:{ $won } R:{ $draw } P:{ $lost }
 standings-header-form = Forma
 standings-header-goals = Góly
 standings-header-gd = Rozdiel v góloch
+
+# Timezone
+tz-select = 🌍 Vyberte región:
+tz-select-city = 🕐 Vyberte mesto:
+tz-saved = ✅ Časové pásmo nastavené: **{$city}**
+tz-change = 🕐 Zmeniť časové pásmo

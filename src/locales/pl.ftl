@@ -141,3 +141,9 @@ standings-stats-short = M:{ $played } Z:{ $won } R:{ $draw } P:{ $lost }
 standings-header-form = Forma
 standings-header-goals = Bramki
 standings-header-gd = Różnica bramek
+
+# Timezone
+tz-select = 🌍 Wybierz region:
+tz-select-city = 🕐 Wybierz miasto:
+tz-saved = ✅ Strefa czasowa ustawiona: **{$city}**
+tz-change = 🕐 Zmień strefę czasową
