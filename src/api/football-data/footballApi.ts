@@ -1,4 +1,8 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import { config } from '@/config';
 import {
   FootballDataResponse,
@@ -43,7 +47,10 @@ export class FootballDataClient {
     });
 
     this.client.interceptors.request.use((cfg) => {
-      log.debug({ method: cfg.method?.toUpperCase(), url: cfg.url }, 'API request');
+      log.debug(
+        { method: cfg.method?.toUpperCase(), url: cfg.url },
+        'API request'
+      );
       return cfg;
     });
 
@@ -77,7 +84,13 @@ export class FootballDataClient {
           }
 
           log.warn(
-            { attempt: cfg.__retryCount, maxRetries: MAX_RETRIES, url: cfg.url, error: error.message, delayMs: delay },
+            {
+              attempt: cfg.__retryCount,
+              maxRetries: MAX_RETRIES,
+              url: cfg.url,
+              error: error.message,
+              delayMs: delay,
+            },
             'API retry'
           );
           await new Promise((resolve) => setTimeout(resolve, delay));
@@ -85,7 +98,12 @@ export class FootballDataClient {
         }
 
         log.error(
-          { url: cfg.url, message: error.message, status: error.response?.status, data: error.response?.data },
+          {
+            url: cfg.url,
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data,
+          },
           'API error'
         );
         throw error;
@@ -99,7 +117,7 @@ export class FootballDataClient {
     dateTo?: string
   ): Promise<FootballDataResponse> {
     const today = new Date().toISOString().split('T')[0];
-    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split('T')[0];
 
@@ -109,7 +127,7 @@ export class FootballDataClient {
         params: {
           status: 'SCHEDULED',
           dateFrom: dateFrom || today,
-          dateTo: dateTo || nextWeek,
+          dateTo: dateTo || nextMonth,
         },
       }
     );
@@ -117,7 +135,9 @@ export class FootballDataClient {
     return response.data;
   }
 
-  async getFinishedMatches(competitionCode: string): Promise<FootballDataResponse> {
+  async getFinishedMatches(
+    competitionCode: string
+  ): Promise<FootballDataResponse> {
     const response = await this.client.get<FootballDataResponse>(
       `/competitions/${competitionCode}/matches`,
       { params: { status: 'FINISHED' } }

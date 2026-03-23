@@ -21,6 +21,7 @@ const RUSSIA_CITIES: TimezoneCity[] = [
   { label: 'Omsk', iana: 'Asia/Omsk', utcOffset: 'UTC+6' },
   { label: 'Krasnoyarsk', iana: 'Asia/Krasnoyarsk', utcOffset: 'UTC+7' },
   { label: 'Irkutsk', iana: 'Asia/Irkutsk', utcOffset: 'UTC+8' },
+  { label: 'Yakutsk', iana: 'Asia/Yakutsk', utcOffset: 'UTC+9' },
   { label: 'Vladivostok', iana: 'Asia/Vladivostok', utcOffset: 'UTC+10' },
 ];
 

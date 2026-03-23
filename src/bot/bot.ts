@@ -31,7 +31,7 @@ import {
 export const bot = new Bot<BotContext>(config.telegram.botToken);
 
 export const i18n = new I18n<BotContext>({
-  defaultLocale: 'ru',
+  defaultLocale: 'en',
   directory: join(process.cwd(), 'src', 'locales'),
 });
 

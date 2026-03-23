@@ -21,7 +21,7 @@ export function getLeagueFlag(competitionCode: string): string {
   return LEAGUE_FLAGS[competitionCode] || '🏆';
 }
 
-let currentLocale = 'ru-RU';
+let currentLocale = 'en-GB';
 let currentTimezone = 'Europe/Berlin';
 
 export function setFormatterLocale(langCode: string): void {

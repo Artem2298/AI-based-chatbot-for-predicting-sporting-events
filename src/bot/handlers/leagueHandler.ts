@@ -15,7 +15,9 @@ export function createLeagueComposer(
   composer.callbackQuery('leagues', async (ctx) => {
     await ctx.answerCallbackQuery();
     try {
-      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      await ctx.editMessageReplyMarkup({
+        reply_markup: { inline_keyboard: [] },
+      });
     } catch {}
     await ctx.reply(ctx.t('league-select'), {
       reply_markup: mainKeyboard,
@@ -29,11 +31,13 @@ export function createLeagueComposer(
     await ctx.answerCallbackQuery();
 
     try {
-      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      await ctx.editMessageReplyMarkup({
+        reply_markup: { inline_keyboard: [] },
+      });
     } catch {}
 
     try {
-      const matches = await matchService.getUpcomingMatches(leagueCode, 14);
+      const matches = await matchService.getUpcomingMatches(leagueCode, 30);
 
       if (matches.length === 0) {
         await ctx.reply('No upcoming matches found');
@@ -50,7 +54,7 @@ export function createLeagueComposer(
     } catch (error) {
       log.error({ leagueCode, err: error }, 'failed to fetch matches');
       await ctx.reply(ctx.t('error-fetching-matches'), {
-         reply_markup: mainKeyboard
+        reply_markup: mainKeyboard,
       });
     }
   });
@@ -58,7 +62,9 @@ export function createLeagueComposer(
   composer.callbackQuery('back:main', async (ctx) => {
     await ctx.answerCallbackQuery();
     try {
-      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      await ctx.editMessageReplyMarkup({
+        reply_markup: { inline_keyboard: [] },
+      });
     } catch {}
 
     const name = ctx.from.first_name || '';
