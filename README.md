@@ -6,7 +6,7 @@ Telegram bot that provides AI-powered football match predictions, and match noti
 
 - **Runtime:** Node.js + TypeScript
 - **Bot framework:** grammY
-- **Database:** PostgreSQL + Prisma ORM
+- **Database:** PostgreSQL (Supabase) + Prisma ORM
 - **AI:** Google Gemini API
 - **Football data:** football-data.org API
 - **Logging:** Pino

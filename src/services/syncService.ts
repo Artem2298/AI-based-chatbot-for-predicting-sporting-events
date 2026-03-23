@@ -32,7 +32,7 @@ export class SyncService {
 
   async syncUpcomingMatches(
     competitions: string[] = LEAGUES,
-    days: number = 14
+    days: number = 30
   ) {
     log.info({ competitionCount: competitions.length }, 'starting sync');
 
@@ -43,7 +43,10 @@ export class SyncService {
           () => this.matchService.getUpcomingMatches(code, days, true),
           { retries: 2, delayMs: 3000, label: `sync(${code})` }
         );
-        log.info({ competition: code, count: matches.length }, 'synced upcoming matches');
+        log.info(
+          { competition: code, count: matches.length },
+          'synced upcoming matches'
+        );
 
         await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_PAUSE));
       } catch (error) {
@@ -66,9 +69,15 @@ export class SyncService {
       return;
     }
 
-    log.info({ finishedCount }, 'not enough finished matches in DB, starting backfill');
+    log.info(
+      { finishedCount },
+      'not enough finished matches in DB, starting backfill'
+    );
 
-    log.info({ competitionCount: competitions.length }, 'starting finished matches backfill');
+    log.info(
+      { competitionCount: competitions.length },
+      'starting finished matches backfill'
+    );
 
     let totalSaved = 0;
     for (const code of competitions) {
@@ -78,11 +87,17 @@ export class SyncService {
           { retries: 2, delayMs: 5000, label: `backfill(${code})` }
         );
         totalSaved += saved;
-        log.info({ competition: code, saved }, 'backfill completed for competition');
+        log.info(
+          { competition: code, saved },
+          'backfill completed for competition'
+        );
 
         await new Promise((resolve) => setTimeout(resolve, BACKFILL_PAUSE));
       } catch (error) {
-        log.error({ competition: code, err: error }, 'backfill failed for competition');
+        log.error(
+          { competition: code, err: error },
+          'backfill failed for competition'
+        );
       }
     }
 
@@ -132,12 +147,24 @@ export class SyncService {
           const delay = reminderTime - now;
           const timeout = setTimeout(() => {
             this.reminderTimeouts.delete(match.id);
-            this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName, match.competitionCode);
+            this.sendPreMatchReminder(
+              match.id,
+              match.homeTeam.name,
+              match.awayTeam.name,
+              match.competitionName,
+              match.competitionCode
+            );
           }, delay);
           this.reminderTimeouts.set(match.id, timeout);
           reminders++;
         } else if (match.utcDate.getTime() > now) {
-          this.sendPreMatchReminder(match.id, match.homeTeam.name, match.awayTeam.name, match.competitionName, match.competitionCode);
+          this.sendPreMatchReminder(
+            match.id,
+            match.homeTeam.name,
+            match.awayTeam.name,
+            match.competitionName,
+            match.competitionCode
+          );
         }
       }
 
@@ -197,7 +224,10 @@ export class SyncService {
     }
 
     if (skippedLate > 0) {
-      log.info({ count: skippedLate }, 'late matches will be handled by periodic cron check');
+      log.info(
+        { count: skippedLate },
+        'late matches will be handled by periodic cron check'
+      );
     }
   }
 
@@ -253,7 +283,13 @@ export class SyncService {
         }
 
         log.info(
-          { matchId, homeTeam: updated.homeTeam, awayTeam: updated.awayTeam, scoreHome: updated.score.home, scoreAway: updated.score.away },
+          {
+            matchId,
+            homeTeam: updated.homeTeam,
+            awayTeam: updated.awayTeam,
+            scoreHome: updated.score.home,
+            scoreAway: updated.score.away,
+          },
           'match finished'
         );
 
@@ -301,20 +337,27 @@ export class SyncService {
         scoreAway
       );
     } catch (error) {
-      log.error({ matchId, err: error }, 'failed to send post-match notifications');
+      log.error(
+        { matchId, err: error },
+        'failed to send post-match notifications'
+      );
     }
 
     log.info({ competitionCode, delayMin: 15 }, 'standings update scheduled');
     const timeout = setTimeout(async () => {
       try {
         this.matchService.clearStandingsCache(competitionCode);
-        await withRetry(
-          () => this.matchService.getStandings(competitionCode),
-          { retries: 2, delayMs: 5000, label: `standings(${competitionCode})` }
-        );
+        await withRetry(() => this.matchService.getStandings(competitionCode), {
+          retries: 2,
+          delayMs: 5000,
+          label: `standings(${competitionCode})`,
+        });
         log.info({ competitionCode }, 'standings updated');
       } catch (error) {
-        log.error({ competitionCode, err: error }, 'failed to update standings');
+        log.error(
+          { competitionCode, err: error },
+          'failed to update standings'
+        );
       }
     }, STANDINGS_DELAY);
     this.standingsTimeouts.push(timeout);
@@ -324,13 +367,22 @@ export class SyncService {
     const cutoff = new Date(Date.now() - MATCH_DURATION_BUFFER);
 
     const matches = await withDbRetry(
-      () => db.match.findMany({
-        where: {
-          utcDate: { lt: cutoff },
-          status: { notIn: ['FINISHED', 'CANCELLED', 'POSTPONED', 'SUSPENDED', 'AWARDED'] },
-        },
-        select: { id: true, competitionCode: true },
-      }),
+      () =>
+        db.match.findMany({
+          where: {
+            utcDate: { lt: cutoff },
+            status: {
+              notIn: [
+                'FINISHED',
+                'CANCELLED',
+                'POSTPONED',
+                'SUSPENDED',
+                'AWARDED',
+              ],
+            },
+          },
+          select: { id: true, competitionCode: true },
+        }),
       'checkUnfinished'
     );
 
@@ -342,11 +394,20 @@ export class SyncService {
     );
 
     if (unmonitored.length === 0) {
-      log.debug({ total: matches.length }, 'all unfinished matches already monitored');
+      log.debug(
+        { total: matches.length },
+        'all unfinished matches already monitored'
+      );
       return;
     }
 
-    log.info({ count: unmonitored.length, skipped: matches.length - unmonitored.length }, 'checking unfinished matches');
+    log.info(
+      {
+        count: unmonitored.length,
+        skipped: matches.length - unmonitored.length,
+      },
+      'checking unfinished matches'
+    );
 
     for (const match of unmonitored) {
       await this.checkMatch(match.id, match.competitionCode);

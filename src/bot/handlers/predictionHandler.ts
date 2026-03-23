@@ -5,9 +5,6 @@ import { DbService } from '@/services/dbService';
 import { userMatchesState } from './matchHandler';
 import {
   formatOutcomePrediction,
-  // formatCornersPrediction,
-  // formatCardsPrediction,
-  // formatOffsidesPrediction,
   formatTotalPrediction,
   formatBttsPrediction,
 } from '@/bot/handlers/formatters/predictionFormatter';
@@ -27,7 +24,9 @@ export function createPredictionComposer(
 
     await ctx.answerCallbackQuery();
     try {
-      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+      await ctx.editMessageReplyMarkup({
+        reply_markup: { inline_keyboard: [] },
+      });
     } catch {}
 
     const t = ctx.t.bind(ctx);
@@ -76,7 +75,9 @@ ${t('bet-select')} ⬇️
 
       await ctx.answerCallbackQuery();
       try {
-        await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
+        await ctx.editMessageReplyMarkup({
+          reply_markup: { inline_keyboard: [] },
+        });
       } catch {}
 
       try {

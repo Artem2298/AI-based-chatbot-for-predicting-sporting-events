@@ -6,11 +6,8 @@ import {
   PredictionData,
   DetailedMatchStats,
   MatchOutcomePrediction,
-  // CornersPrediction,
   PredictionType,
   Prediction,
-  // OffsidesPrediction,
-  // CardsPrediction,
   TotalGoalsPrediction,
   BttsPrediction,
 } from '@/types/prediction.types';
@@ -47,12 +44,6 @@ export class PredictionService {
     switch (type) {
       case 'outcome':
         return this.generateOutcomePrediction(matchId, lang, userId);
-      // case 'corners':
-      //   return this.generateCornersPrediction(matchId, lang, userId);
-      // case 'cards':
-      //   return this.generateCardsPrediction(matchId, lang, userId);
-      // case 'offsides':
-      //   return this.generateOffsidesPrediction(matchId, lang, userId);
       case 'total':
         return this.generateTotalPrediction(matchId, lang, userId);
       case 'btts':
@@ -61,8 +52,6 @@ export class PredictionService {
         throw new Error(`Unknown prediction type: ${type}`);
     }
   }
-
-  // ── Data collection ──────────────────────────────────────────────
 
   private async collectMatchData(
     matchId: number,
@@ -187,44 +176,11 @@ export class PredictionService {
         wasHome: isHome,
       };
 
-      // if (fetchDetails) {
-      //   if (matches.indexOf(match) > 0)
-      //     await new Promise((r) =>
-      //       setTimeout(r, PredictionService.API_RATE_LIMIT_DELAY)
-      //     );
-
-      //   try {
-      //     const fullMatch = await this.matchService.getMatchWithDetailedStats(
-      //       match.id
-      //     );
-
-      //     if (fullMatch.homeTeam && fullMatch.awayTeam) {
-      //       const teamStats = isHome
-      //         ? fullMatch.homeTeam.statistics
-      //         : fullMatch.awayTeam.statistics;
-
-      //       if (teamStats) {
-      //         baseStats.corners = teamStats.corner_kicks ?? undefined;
-      //         baseStats.yellowCards = teamStats.yellow_cards ?? undefined;
-      //         baseStats.redCards = teamStats.red_cards ?? undefined;
-      //         baseStats.offsides = teamStats.offsides ?? undefined;
-      //         baseStats.shotsOnTarget = teamStats.shots_on_goal ?? undefined;
-      //         baseStats.shotsOffTarget = teamStats.shots_off_goal ?? undefined;
-      //         baseStats.possession = teamStats.ball_possession ?? undefined;
-      //       }
-      //     }
-      //   } catch {
-      //     log.warn({ matchId: match.id }, 'could not fetch detailed stats for match');
-      //   }
-      // }
-
       enrichedMatches.push(baseStats);
     }
 
     return enrichedMatches.reverse();
   }
-
-  // ── Prediction generation per type ───────────────────────────────
 
   private async generateOutcomePrediction(
     matchId: number,
@@ -243,96 +199,6 @@ export class PredictionService {
       lang
     );
   }
-
-  // private async generateCornersPrediction(
-  //   matchId: number,
-  //   lang?: string,
-  //   userId?: number
-  // ): Promise<CornersPrediction> {
-  //   return this.generatePredictionBase(
-  //     matchId,
-  //     'corners',
-  //     'CORNERS',
-  //     (data) => {
-  //       const home = this.stats.calculateCornersStats(data.homeTeam.lastMatches);
-  //       const away = this.stats.calculateCornersStats(data.awayTeam.lastMatches);
-  //       if (!home || !away) {
-  //         throw new Error('Insufficient corners statistics for prediction');
-  //       }
-  //       return { home, away };
-  //     },
-  //     async (data, stats) =>
-  //       await this.prompts.buildCornersPredictionPrompt(
-  //         data,
-  //         stats.home,
-  //         stats.away,
-  //         lang
-  //       ),
-  //     (pred) => this.validator.validateCornersPrediction(pred),
-  //     userId,
-  //     lang
-  //   );
-  // }
-
-  // private async generateCardsPrediction(
-  //   matchId: number,
-  //   lang?: string,
-  //   userId?: number
-  // ): Promise<CardsPrediction> {
-  //   return this.generatePredictionBase(
-  //     matchId,
-  //     'cards',
-  //     'CARDS',
-  //     (data) => {
-  //       const home = this.stats.calculateCardsStats(data.homeTeam.lastMatches);
-  //       const away = this.stats.calculateCardsStats(data.awayTeam.lastMatches);
-  //       if (!home || !away) {
-  //         throw new Error('Insufficient cards statistics for prediction');
-  //       }
-  //       return { home, away };
-  //     },
-  //     async (data, stats) =>
-  //       await this.prompts.buildCardsPredictionPrompt(
-  //         data,
-  //         stats.home,
-  //         stats.away,
-  //         lang
-  //       ),
-  //     (pred) => this.validator.validateCardsPrediction(pred),
-  //     userId,
-  //     lang
-  //   );
-  // }
-
-  // private async generateOffsidesPrediction(
-  //   matchId: number,
-  //   lang?: string,
-  //   userId?: number
-  // ): Promise<OffsidesPrediction> {
-  //   return this.generatePredictionBase(
-  //     matchId,
-  //     'offsides',
-  //     'OFFSIDES',
-  //     (data) => {
-  //       const home = this.stats.calculateOffsidesStats(data.homeTeam.lastMatches);
-  //       const away = this.stats.calculateOffsidesStats(data.awayTeam.lastMatches);
-  //       if (!home || !away) {
-  //         throw new Error('Insufficient offsides statistics for prediction');
-  //       }
-  //       return { home, away };
-  //     },
-  //     async (data, stats) =>
-  //       await this.prompts.buildOffsidesPredictionPrompt(
-  //         data,
-  //         stats.home,
-  //         stats.away,
-  //         lang
-  //       ),
-  //     (pred) => this.validator.validateOffsidesPrediction(pred),
-  //     userId,
-  //     lang
-  //   );
-  // }
 
   private async generateTotalPrediction(
     matchId: number,
@@ -375,8 +241,6 @@ export class PredictionService {
       lang
     );
   }
-
-  // ── Core template ────────────────────────────────────────────────
 
   private async generatePredictionBase<T extends Prediction, S>(
     matchId: number,
@@ -484,8 +348,6 @@ export class PredictionService {
       throw error;
     }
   }
-
-  // ── User tracking ────────────────────────────────────────────────
 
   private async trackUserView(userId: number, predictionId: number) {
     try {

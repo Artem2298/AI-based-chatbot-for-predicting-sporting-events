@@ -76,7 +76,7 @@ export class MatchService {
     return this.getCached(
       `matchRaw:${matchId}`,
       () => this.footballApi.getMatch(matchId),
-      600, // 10 min
+      86400, // 24 hours — match details rarely change
       async () => {
         const match = await db.match.findUnique({
           where: { id: matchId },
@@ -526,7 +526,7 @@ export class MatchService {
       `refreshMatch(${matchId})`
     );
 
-    this.cache.set(`matchRaw:${matchId}`, response, 600);
+    this.cache.set(`matchRaw:${matchId}`, response, 86400);
 
     return {
       ...baseMatch,

@@ -131,9 +131,6 @@ model PredictionAccuracy {
   outcomeCorrect        Boolean?
   goalsOverUnderCorrect Boolean?
   bttsCorrect           Boolean?
-  cornersCorrect        Boolean?
-  cardsCorrect          Boolean?
-  offsidesCorrect       Boolean?
   createdAt             DateTime @default(now())
 
   prediction Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)

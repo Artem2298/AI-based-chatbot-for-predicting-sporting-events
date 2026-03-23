@@ -24,6 +24,7 @@ coverage/
 
 # Misc
 csv_data/
+ml model/
 tip.py
 .tip.py
 *.log
