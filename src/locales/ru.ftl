@@ -114,6 +114,9 @@ predict-expected-title = ОЖИДАЕМЫЕ ЗНАЧЕННЯ:
 predict-expected-total = - Всего { $type }:
 predict-expected-yellow = - Желтые карточки:
 predict-expected-red = - Красные карточки:
+predict-expected-goals = Ожидаемое количество голов:
+predict-expected-home-goals = Ожидаемые голы хозяев:
+predict-expected-away-goals = Ожидаемые голы гостей:
 
 btn-follow = Следить
 btn-unfollow = Отписаться

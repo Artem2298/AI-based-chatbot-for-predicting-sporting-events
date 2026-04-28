@@ -21,12 +21,8 @@ export class AccuracyService {
 
     const actualTotalGoals = actualScoreHome + actualScoreAway;
 
-    // Types that can't be auto-evaluated (API doesn't provide this data)
-    // const SKIP_TYPES = new Set(['corners', 'cards', 'offsides']);
-
     for (const prediction of predictions) {
       if (prediction.accuracy) continue;
-      // if (SKIP_TYPES.has(prediction.type)) continue;
 
       const content = prediction.content as Record<string, unknown>;
 

@@ -3,22 +3,6 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('stats');
 
-// export interface SimpleStats {
-//   total: number;
-//   average: number;
-//   matches: number;
-// }
-
-// export interface CardsStats {
-//   totalYellow: number;
-//   totalRed: number;
-//   totalCards: number;
-//   avgYellow: number;
-//   avgRed: number;
-//   avgTotal: number;
-//   matches: number;
-// }
-
 export class StatsCalculator {
   calculateGeneralStats(matches: DetailedMatchStats[]) {
     const wins = matches.filter((m) => m.result === 'W').length;
@@ -39,36 +23,6 @@ export class StatsCalculator {
       avgGoalsAgainst: (goalsAgainst / matches.length).toFixed(2),
     };
   }
-
-  // calculateSimpleStats(
-  //   matches: DetailedMatchStats[],
-  //   field: 'corners' | 'offsides' | 'yellowCards' | 'redCards'
-  // ): SimpleStats | null {
-  //   const matchesWithField = matches.filter((m) => m[field] !== undefined);
-
-  //   if (matchesWithField.length === 0) {
-  //     return null;
-  //   }
-
-  //   const total = matchesWithField.reduce(
-  //     (sum, m) => sum + ((m[field] as number) || 0),
-  //     0
-  //   );
-
-  //   return {
-  //     total,
-  //     average: parseFloat((total / matchesWithField.length).toFixed(2)),
-  //     matches: matchesWithField.length,
-  //   };
-  // }
-
-  // calculateCornersStats(matches: DetailedMatchStats[]): SimpleStats | null {
-  //   return this.calculateSimpleStats(matches, 'corners');
-  // }
-
-  // calculateOffsidesStats(matches: DetailedMatchStats[]): SimpleStats | null {
-  //   return this.calculateSimpleStats(matches, 'offsides');
-  // }
 
   calculateGoalsStats(matches: DetailedMatchStats[]) {
     if (matches.length === 0) return null;
@@ -97,23 +51,4 @@ export class StatsCalculator {
       })),
     };
   }
-
-  // calculateCardsStats(matches: DetailedMatchStats[]): CardsStats | null {
-  //   const yellowStats = this.calculateSimpleStats(matches, 'yellowCards');
-  //   const redStats = this.calculateSimpleStats(matches, 'redCards');
-
-  //   if (!yellowStats || !redStats) {
-  //     return null;
-  //   }
-
-  //   return {
-  //     totalYellow: yellowStats.total,
-  //     totalRed: redStats.total,
-  //     totalCards: yellowStats.total + redStats.total,
-  //     avgYellow: yellowStats.average,
-  //     avgRed: redStats.average,
-  //     avgTotal: parseFloat((yellowStats.average + redStats.average).toFixed(2)),
-  //     matches: yellowStats.matches,
-  //   };
-  // }
 }

@@ -57,16 +57,14 @@ export function createTimezoneComposer(): Composer<BotContext> {
       await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } });
     } catch {}
 
-    if (ctx.from) {
-      try {
-        await db.user.update({
-          where: { telegramId: BigInt(ctx.from.id) },
-          data: { timezone },
-        });
-        log.info({ telegramId: ctx.from.id, timezone }, 'user timezone saved');
-      } catch (error) {
-        log.error({ telegramId: ctx.from.id, err: error }, 'failed to save timezone');
-      }
+    try {
+      await db.user.update({
+        where: { telegramId: BigInt(ctx.from.id) },
+        data: { timezone },
+      });
+      log.info({ telegramId: ctx.from.id, timezone }, 'user timezone saved');
+    } catch (error) {
+      log.error({ telegramId: ctx.from.id, err: error }, 'failed to save timezone');
     }
 
     const cityName = timezone.split('/').pop()?.replace(/_/g, ' ') || timezone;

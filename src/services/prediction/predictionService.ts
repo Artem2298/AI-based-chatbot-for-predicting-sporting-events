@@ -24,7 +24,6 @@ export class PredictionService {
   private readonly validator: PredictionValidator;
 
   private static readonly PREDICTION_TTL = 6 * 60 * 60 * 1000; // 6h
-  private static readonly API_RATE_LIMIT_DELAY = 1500; // 1.5s between API calls
 
   constructor(
     private matchService: MatchService,
@@ -53,10 +52,7 @@ export class PredictionService {
     }
   }
 
-  private async collectMatchData(
-    matchId: number,
-    fetchDetails: boolean = false
-  ): Promise<PredictionData> {
+  private async collectMatchData(matchId: number): Promise<PredictionData> {
     const match = await this.matchService.getMatchDetails(matchId);
 
     log.debug(
@@ -91,7 +87,6 @@ export class PredictionService {
       'team matches fetched'
     );
 
-    // Fetch standings for team positions
     let homePosition: number | undefined;
     let homePoints: number | undefined;
     let awayPosition: number | undefined;
@@ -124,8 +119,7 @@ export class PredictionService {
       name: match.homeTeam,
       lastMatches: await this.enrichMatchesWithStats(
         homeMatches,
-        match.homeTeam,
-        fetchDetails
+        match.homeTeam
       ),
       position: homePosition,
       points: homePoints,
@@ -135,8 +129,7 @@ export class PredictionService {
       name: match.awayTeam,
       lastMatches: await this.enrichMatchesWithStats(
         awayMatches,
-        match.awayTeam,
-        fetchDetails
+        match.awayTeam
       ),
       position: awayPosition,
       points: awayPoints,
@@ -153,8 +146,7 @@ export class PredictionService {
 
   private async enrichMatchesWithStats(
     matches: MatchWithScore[],
-    teamName: string,
-    fetchDetails: boolean
+    teamName: string
   ): Promise<DetailedMatchStats[]> {
     const enrichedMatches: DetailedMatchStats[] = [];
 
@@ -170,8 +162,8 @@ export class PredictionService {
 
       const baseStats: DetailedMatchStats = {
         result,
-        goalsScored: goalsScored || 0,
-        goalsConceded: goalsConceded || 0,
+        goalsScored,
+        goalsConceded,
         opponent: isHome ? match.awayTeam : match.homeTeam,
         wasHome: isHome,
       };
@@ -253,9 +245,8 @@ export class PredictionService {
     lang: string = 'en'
   ): Promise<T> {
     try {
-      const locale = lang || 'en';
+      const locale = lang;
 
-      // 1. Check for cached prediction
       const cached = await db.prediction.findUnique({
         where: {
           matchId_type_locale: {
@@ -272,7 +263,6 @@ export class PredictionService {
           PredictionService.PREDICTION_TTL;
 
         if (isFresh) {
-          // Track user view
           if (userId) {
             await this.trackUserView(userId, cached.id);
           }
@@ -284,10 +274,7 @@ export class PredictionService {
         }
       }
 
-      const data = await this.collectMatchData(
-        matchId,
-        type !== 'outcome' && type !== 'total' && type !== 'btts'
-      );
+      const data = await this.collectMatchData(matchId);
 
       const stats = statsCalculator(data);
       const prompt = await promptBuilder(data, stats);

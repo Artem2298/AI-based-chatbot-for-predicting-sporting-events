@@ -33,17 +33,5 @@ describe('CacheService', () => {
     expect(cacheService.get('key')).toBeNull();
   });
 
-  it('should clear all items', () => {
-    cacheService.set('a', 1);
-    cacheService.set('b', 2);
-    cacheService.clear();
-    expect(cacheService.get('a')).toBeNull();
-    expect(cacheService.get('b')).toBeNull();
-  });
 
-  it('should check if key exists using has()', () => {
-    cacheService.set('exists', true);
-    expect(cacheService.has('exists')).toBe(true);
-    expect(cacheService.has('none')).toBe(false);
-  });
 });

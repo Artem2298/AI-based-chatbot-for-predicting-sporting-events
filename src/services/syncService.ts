@@ -58,7 +58,6 @@ export class SyncService {
   }
 
   async syncFinishedMatches(competitions: string[] = LEAGUES) {
-    // Check if backfill already done (expect hundreds of matches after backfill)
     const finishedCount = await withDbRetry(
       () => db.match.count({ where: { status: 'FINISHED' } }),
       'backfillCheck'

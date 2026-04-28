@@ -328,7 +328,7 @@ export async function showMatchesPage(
   }
 }
 
-async function showLeagueSelection(ctx: BotContext) {
+export async function showLeagueSelection(ctx: BotContext) {
   await ctx.answerCallbackQuery({
     text: ctx.t('league-error'),
   });

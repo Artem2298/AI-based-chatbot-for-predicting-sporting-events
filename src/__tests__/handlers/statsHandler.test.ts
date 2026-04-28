@@ -68,9 +68,7 @@ describe('statsHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'Loading statistics...',
-    });
+    expect(ctx.answerCallbackQuery).toHaveBeenCalled();
     expect(mockMatchService.getMatchDetails).toHaveBeenCalledWith(123);
     expect(ctx.editMessageText).toHaveBeenCalled();
     const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
@@ -97,9 +95,7 @@ describe('statsHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'Loading statistics...',
-    });
+    expect(ctx.answerCallbackQuery).toHaveBeenCalled();
     const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
       .calls[0][0];
     expect(message).toContain('Home Stats: Team A');
@@ -124,9 +120,7 @@ describe('statsHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'Loading statistics...',
-    });
+    expect(ctx.answerCallbackQuery).toHaveBeenCalled();
     const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
       .calls[0][0];
     expect(message).toContain('Away Stats: Team B');

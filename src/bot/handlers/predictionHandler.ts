@@ -13,6 +13,9 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('handler:prediction');
 
+const GIF_FILE_ID =
+  'CgACAgQAAxkBAAIENWmyisd53KHW7UsY5SQ8MljcHhFKAAIoAwACfDlcU1JZFHE_23JcOgQ';
+
 export function createPredictionComposer(
   matchService: MatchService,
   predictionService: PredictionService
@@ -42,7 +45,7 @@ ${t('bet-select')} ⬇️
 
     const keyboard = new InlineKeyboard()
       .text(
-        `⚽ ${ctx.t('predict-title-outcome').replace(/🤖 AI ПРОГНОЗ: /i, '')}`,
+        `⚽ ${ctx.t('predict-title-outcome')}`,
         `predict_type:outcome:${matchId}`
       )
       .row()
@@ -64,13 +67,7 @@ ${t('bet-select')} ⬇️
   composer.callbackQuery(
     /^predict_type:(outcome|total|btts):(\d+)$/,
     async (ctx) => {
-      const type = ctx.match[1] as
-        | 'outcome'
-        // | 'corners'
-        // | 'cards'
-        // | 'offsides'
-        | 'total'
-        | 'btts';
+      const type = ctx.match[1] as 'outcome' | 'total' | 'btts';
       const matchId = parseInt(ctx.match[2]);
 
       await ctx.answerCallbackQuery();
@@ -89,10 +86,7 @@ ${t('bet-select')} ⬇️
           btts: '🤝',
         }[type];
 
-        const typeName = ctx
-          .t(`predict-title-${type}`)
-          .replace(/🤖 AI ПРОГНОЗ: /i, '');
-
+        const typeName = ctx.t(`predict-title-${type}`);
         await ctx.reply(
           `${ctx.t('predict-process')}\n\n` +
             `⚽ ${match.homeTeam} vs ${match.awayTeam}\n` +
@@ -103,20 +97,15 @@ ${t('bet-select')} ⬇️
           { parse_mode: 'Markdown' }
         );
 
-        const gifMsg = await ctx.replyWithAnimation(
-          'CgACAgQAAxkBAAIENWmyisd53KHW7UsY5SQ8MljcHhFKAAIoAwACfDlcU1JZFHE_23JcOgQ'
-        );
+        const gifMsg = await ctx.replyWithAnimation(GIF_FILE_ID);
 
-        let dbUserId: number | undefined;
-        if (ctx.from) {
-          const dbUser = await DbService.getUserByTelegramId(ctx.from.id);
-          dbUserId = dbUser?.id;
-        }
+        const dbUser = await DbService.getUserByTelegramId(ctx.from.id);
+        const dbUserId = dbUser?.id;
 
         const prediction = await predictionService.generatePrediction(
           matchId,
           type,
-          ctx.from?.language_code,
+          ctx.from.language_code,
           dbUserId
         );
 
@@ -126,15 +115,6 @@ ${t('bet-select')} ⬇️
           case 'outcome':
             message = formatOutcomePrediction(match, prediction, t);
             break;
-          // case 'corners':
-          //   message = formatCornersPrediction(match, prediction, t);
-          //   break;
-          // case 'cards':
-          //   message = formatCardsPrediction(match, prediction, t);
-          //   break;
-          // case 'offsides':
-          //   message = formatOffsidesPrediction(match, prediction, t);
-          //   break;
           case 'total':
             message = formatTotalPrediction(match, prediction, t);
             break;
@@ -174,10 +154,7 @@ ${t('bet-select')} ⬇️
           errorMessage +=
             '\n\n' +
             ctx.t('predict-insufficient', {
-              type: ctx
-                .t(`predict-title-${type}`)
-                .replace(/🤖 AI ПРОГНОЗ: /i, '')
-                .toLowerCase(),
+              type: ctx.t(`predict-title-${type}`).toLowerCase(),
             });
           errorMessage += '\n\n' + ctx.t('predict-try-other');
         } else {

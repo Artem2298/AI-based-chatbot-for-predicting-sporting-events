@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
-import { userMatchesState, showMatchesPage } from './matchHandler';
-import { mainKeyboard } from '../keyboards/main.keyboard';
+import { userMatchesState, showMatchesPage, showLeagueSelection } from './matchHandler';
 import { BotContext } from '@/types/context';
 
 export function createPaginationComposer(): Composer<BotContext> {
@@ -41,14 +40,4 @@ export function createPaginationComposer(): Composer<BotContext> {
   });
 
   return composer;
-}
-
-async function showLeagueSelection(ctx: BotContext) {
-  await ctx.answerCallbackQuery({
-    text: ctx.t('league-error'),
-  });
-
-  await ctx.reply(ctx.t('league-select'), {
-    reply_markup: mainKeyboard,
-  });
 }

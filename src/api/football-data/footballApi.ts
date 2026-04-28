@@ -14,7 +14,6 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('football-api');
 
-/** Network error codes that are safe to retry */
 const RETRYABLE_NETWORK_CODES = new Set([
   'ENOTFOUND',
   'ECONNRESET',
@@ -24,10 +23,10 @@ const RETRYABLE_NETWORK_CODES = new Set([
   'ERR_NETWORK',
 ]);
 
-/** HTTP status codes that are safe to retry */
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 
 const MAX_RETRIES = 3;
+const LOOKAHEAD_PERIOD = 30 * 24 * 60 * 60 * 1000;
 const BASE_DELAY_MS = 2000;
 
 interface RetryConfig extends InternalAxiosRequestConfig {
@@ -117,7 +116,7 @@ export class FootballDataClient {
     dateTo?: string
   ): Promise<FootballDataResponse> {
     const today = new Date().toISOString().split('T')[0];
-    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    const endDate = new Date(Date.now() + LOOKAHEAD_PERIOD)
       .toISOString()
       .split('T')[0];
 
@@ -127,7 +126,7 @@ export class FootballDataClient {
         params: {
           status: 'SCHEDULED',
           dateFrom: dateFrom || today,
-          dateTo: dateTo || nextMonth,
+          dateTo: dateTo || endDate,
         },
       }
     );
@@ -154,7 +153,7 @@ export class FootballDataClient {
 
   async getTeamMatches(
     teamId: number,
-    limit: number = 10,
+    limit: number = 15,
     competitionId?: number
   ): Promise<TeamMatchesResponse> {
     const params: Record<string, string | number> = {
@@ -173,23 +172,13 @@ export class FootballDataClient {
     return response.data;
   }
 
-  async getCompetitions() {
-    const response = await this.client.get('/competitions');
-    return response.data;
-  }
-
   async getHeadToHead(
     matchId: number,
     limit: number = 10
-  ): Promise<{
-    matches: FootballDataMatch[];
-  }> {
-    const endpoint = `/matches/${matchId}/head2head`;
-    const params = new URLSearchParams({
-      limit: limit.toString(),
+  ): Promise<{ matches: FootballDataMatch[] }> {
+    const response = await this.client.get(`/matches/${matchId}/head2head`, {
+      params: { limit },
     });
-
-    const response = await this.client.get(`${endpoint}?${params}`);
     return response.data;
   }
 
@@ -197,15 +186,9 @@ export class FootballDataClient {
     competitionCode: string,
     season?: number
   ): Promise<StandingsResponse> {
-    const endpoint = `/competitions/${competitionCode}/standings`;
-    const params = new URLSearchParams();
-
-    if (season) {
-      params.append('season', season.toString());
-    }
-
     const response = await this.client.get(
-      `${endpoint}${params.toString() ? '?' + params : ''}`
+      `/competitions/${competitionCode}/standings`,
+      { params: season ? { season } : undefined }
     );
     return response.data;
   }
