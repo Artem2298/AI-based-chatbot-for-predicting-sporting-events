@@ -40,7 +40,7 @@ export function createLeagueComposer(
       const matches = await matchService.getUpcomingMatches(leagueCode, 30);
 
       if (matches.length === 0) {
-        await ctx.reply('No upcoming matches found');
+        await ctx.reply(ctx.t('no-upcoming-matches'));
         return;
       }
 

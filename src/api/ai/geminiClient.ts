@@ -40,26 +40,24 @@ export class GeminiClient {
   async generateJSON(prompt: string): Promise<Record<string, unknown>> {
     const jsonPrompt = `${prompt}\n\nReturn the answer ONLY in JSON format, without markdown formatting, without any additional text.`;
 
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const text = await this.generateText(jsonPrompt);
-        const cleanedText = text
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        return JSON.parse(cleanedText);
-      } catch (error) {
-        if (attempt === 0) {
-          log.warn({ err: error }, 'invalid response, retrying once');
-          continue;
-        }
-        const message = error instanceof Error ? error.message : String(error);
-        log.error({ err: error }, 'failed to parse JSON after retry');
-        throw new Error(`Failed to generate JSON: ${message}`);
-      }
+    const parse = (text: string): Record<string, unknown> =>
+      JSON.parse(
+        text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+      );
+
+    try {
+      return parse(await this.generateText(jsonPrompt));
+    } catch (error) {
+      log.warn({ err: error }, 'invalid response, retrying once');
     }
 
-    throw new Error('Failed to generate JSON: unexpected');
+    try {
+      return parse(await this.generateText(jsonPrompt));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      log.error({ err: error }, 'failed to parse JSON after retry');
+      throw new Error(`Failed to generate JSON: ${message}`);
+    }
   }
 }
 

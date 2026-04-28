@@ -163,7 +163,7 @@ describe('NotificationService', () => {
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         100,
         expect.any(String),
-        { parse_mode: 'Markdown' }
+        expect.objectContaining({ parse_mode: 'Markdown' })
       );
     });
 

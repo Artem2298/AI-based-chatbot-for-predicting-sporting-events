@@ -70,23 +70,41 @@ describe('GeminiClient', () => {
 
   describe('generateJSON', () => {
     it('should parse JSON from response and clean markdown tags', async () => {
-      const mockResponse = {
-        text: '```json\n{"key": "value"}\n```'
-      };
-      mockGenAI.models.generateContent.mockResolvedValue(mockResponse);
+      mockGenAI.models.generateContent.mockResolvedValue({
+        text: '```json\n{"key": "value"}\n```',
+      });
 
       const result = await client.generateJSON('Give me JSON');
 
       expect(result).toEqual({ key: 'value' });
     });
 
-    it('should throw error if JSON is invalid', async () => {
-      const mockResponse = {
-        text: 'Not a JSON'
-      };
-      mockGenAI.models.generateContent.mockResolvedValue(mockResponse);
+    it('should parse plain JSON without markdown tags', async () => {
+      mockGenAI.models.generateContent.mockResolvedValue({
+        text: '{"score": 42}',
+      });
+
+      const result = await client.generateJSON('Give me JSON');
+
+      expect(result).toEqual({ score: 42 });
+    });
+
+    it('should retry once and succeed if first attempt returns invalid JSON', async () => {
+      mockGenAI.models.generateContent
+        .mockResolvedValueOnce({ text: 'Not a JSON' })
+        .mockResolvedValueOnce({ text: '{"ok": true}' });
+
+      const result = await client.generateJSON('test');
+
+      expect(mockGenAI.models.generateContent).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('should throw error if both attempts return invalid JSON', async () => {
+      mockGenAI.models.generateContent.mockResolvedValue({ text: 'Not a JSON' });
 
       await expect(client.generateJSON('test')).rejects.toThrow('Failed to generate JSON');
+      expect(mockGenAI.models.generateContent).toHaveBeenCalledTimes(2);
     });
   });
 });

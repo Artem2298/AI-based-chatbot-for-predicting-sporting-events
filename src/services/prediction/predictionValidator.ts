@@ -2,7 +2,6 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('prediction-validator');
 
-/** Raw AI response before validation */
 export type RawAIPrediction = Record<string, number | string | undefined>;
 
 export class PredictionValidator {
@@ -29,44 +28,6 @@ export class PredictionValidator {
         100 - (prediction.homeWin as number) - (prediction.draw as number);
     }
   }
-
-  // validateCornersPrediction(prediction: RawAIPrediction): void {
-  //   if (!prediction.totalOver9_5 || !prediction.totalUnder9_5) {
-  //     throw new Error('Invalid corners prediction format from AI');
-  //   }
-
-  //   if (
-  //     !prediction.expectedTotal ||
-  //     !prediction.expectedHome ||
-  //     !prediction.expectedAway
-  //   ) {
-  //     throw new Error('Missing expected values in corners prediction');
-  //   }
-  // }
-
-  // validateCardsPrediction(prediction: RawAIPrediction): void {
-  //   if (!prediction.totalOver3_5 || !prediction.totalUnder3_5) {
-  //     throw new Error('Invalid cards prediction format from AI');
-  //   }
-
-  //   if (!prediction.expectedTotal || prediction.expectedYellow === undefined) {
-  //     throw new Error('Missing expected values in cards prediction');
-  //   }
-  // }
-
-  // validateOffsidesPrediction(prediction: RawAIPrediction): void {
-  //   if (!prediction.totalOver3_5 || !prediction.totalUnder3_5) {
-  //     throw new Error('Invalid offsides prediction format from AI');
-  //   }
-
-  //   if (
-  //     !prediction.expectedTotal ||
-  //     !prediction.expectedHome ||
-  //     !prediction.expectedAway
-  //   ) {
-  //     throw new Error('Missing expected values in offsides prediction');
-  //   }
-  // }
 
   validateTotalPrediction(prediction: RawAIPrediction): void {
     if (

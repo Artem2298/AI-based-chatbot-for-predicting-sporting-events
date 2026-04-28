@@ -1,8 +1,5 @@
 import {
   MatchOutcomePrediction,
-  // CornersPrediction,
-  // CardsPrediction,
-  // OffsidesPrediction,
   TotalGoalsPrediction,
   BttsPrediction,
 } from '@/types/prediction.types';
@@ -14,7 +11,7 @@ type TranslateFn = (
 ) => string;
 
 const formatConfidence = (confidence: number): string => {
-  const stars = Math.round(confidence / 20); // 0-5 stars
+  const stars = Math.round(confidence / 20);
   return '⭐'.repeat(stars) + ` (${confidence}%)`;
 };
 
@@ -51,84 +48,6 @@ export const formatOutcomePrediction = (
   return lines.join('\n');
 };
 
-// export const formatCornersPrediction = (
-//   match: Match,
-//   prediction: CornersPrediction,
-//   t: TranslateFn
-// ): string => {
-//   const lines = [
-//     `🚩 *${t('predict-title-corners')}*`,
-//     `🏟 ${match.homeTeam} vs ${match.awayTeam}`,
-//     '',
-//     `📊 *${t('predict-recomm-title')}:* ${prediction.recommendation}`,
-//     `🎯 *${t('predict-conf-title')}:* ${formatConfidence(prediction.confidence)}`,
-//     '',
-//     `📝 *${t('predict-reason-title')}:*`,
-//     prediction.reasoning,
-//     '',
-//     `📈 *${t('predict-expected-title')}:*`,
-//     `Expected Total: ${prediction.expectedTotal}`,
-//     `Over 9.5: ${prediction.totalOver9_5}%`,
-//     `Under 9.5: ${prediction.totalUnder9_5}%`,
-//     `Home Over 5.5: ${prediction.homeTeamOver5_5}%`,
-//     `Away Over 4.5: ${prediction.awayTeamOver4_5}%`,
-//   ];
-
-//   return lines.join('\n');
-// };
-
-// export const formatCardsPrediction = (
-//   match: Match,
-//   prediction: CardsPrediction,
-//   t: TranslateFn
-// ): string => {
-//   const lines = [
-//     `🟨 *${t('predict-title-cards')}*`,
-//     `🏟 ${match.homeTeam} vs ${match.awayTeam}`,
-//     '',
-//     `📊 *${t('predict-recomm-title')}:* ${prediction.recommendation}`,
-//     `🎯 *${t('predict-conf-title')}:* ${formatConfidence(prediction.confidence)}`,
-//     '',
-//     `📝 *${t('predict-reason-title')}:*`,
-//     prediction.reasoning,
-//     '',
-//     `📈 *${t('predict-expected-title')}:*`,
-//     `Expected Total: ${prediction.expectedTotal}`,
-//     `Over 3.5: ${prediction.totalOver3_5}%`,
-//     `Under 3.5: ${prediction.totalUnder3_5}%`,
-//     `Expected Yellow: ${prediction.expectedYellow}`,
-//     `Expected Red: ${prediction.expectedRed}`,
-//   ];
-
-//   return lines.join('\n');
-// };
-
-// export const formatOffsidesPrediction = (
-//   match: Match,
-//   prediction: OffsidesPrediction,
-//   t: TranslateFn
-// ): string => {
-//   const lines = [
-//     `🏁 *${t('predict-title-offsides')}*`,
-//     `🏟 ${match.homeTeam} vs ${match.awayTeam}`,
-//     '',
-//     `📊 *${t('predict-recomm-title')}:* ${prediction.recommendation}`,
-//     `🎯 *${t('predict-conf-title')}:* ${formatConfidence(prediction.confidence)}`,
-//     '',
-//     `📝 *${t('predict-reason-title')}:*`,
-//     prediction.reasoning,
-//     '',
-//     `📈 *${t('predict-expected-title')}:*`,
-//     `Expected Total: ${prediction.expectedTotal}`,
-//     `Over 3.5: ${prediction.totalOver3_5}%`,
-//     `Under 3.5: ${prediction.totalUnder3_5}%`,
-//     `Home Over 1.5: ${prediction.homeTeamOver1_5}%`,
-//     `Away Over 1.5: ${prediction.awayTeamOver1_5}%`,
-//   ];
-
-//   return lines.join('\n');
-// };
-
 export const formatTotalPrediction = (
   match: Match,
   prediction: TotalGoalsPrediction,
@@ -145,9 +64,9 @@ export const formatTotalPrediction = (
     prediction.reasoning,
     '',
     `📈 *${t('predict-expected-title')}:*`,
-    `Expected Total Goals: ${prediction.expectedTotalGoals}`,
-    `Over 2.5: ${prediction.totalOver2_5}%`,
-    `Under 2.5: ${prediction.totalUnder2_5}%`,
+    `${t('predict-expected-goals')} ${prediction.expectedTotalGoals}`,
+    `${t('predict-total-over')} ${prediction.totalOver2_5}%`,
+    `${t('predict-total-under')} ${prediction.totalUnder2_5}%`,
   ];
 
   return lines.join('\n');
@@ -169,10 +88,10 @@ export const formatBttsPrediction = (
     prediction.reasoning,
     '',
     `📈 *${t('predict-expected-title')}:*`,
-    `Yes: ${prediction.bothTeamsToScoreYes}%`,
-    `No: ${prediction.bothTeamsToScoreNo}%`,
-    `Expected Home Goals: ${prediction.expectedHomeGoals}`,
-    `Expected Away Goals: ${prediction.expectedAwayGoals}`,
+    `${t('predict-yes')}: ${prediction.bothTeamsToScoreYes}%`,
+    `${t('predict-no')}: ${prediction.bothTeamsToScoreNo}%`,
+    `${t('predict-expected-home-goals')} ${prediction.expectedHomeGoals}`,
+    `${t('predict-expected-away-goals')} ${prediction.expectedAwayGoals}`,
   ];
 
   return lines.join('\n');

@@ -114,6 +114,9 @@ predict-expected-title = OČEKÁVANÉ HODNOTY:
 predict-expected-total = - Celkem { $type }:
 predict-expected-yellow = - Žluté karty:
 predict-expected-red = - Červené karty:
+predict-expected-goals = Očekávaný počet gólů:
+predict-expected-home-goals = Očekávané góly domácích:
+predict-expected-away-goals = Očekávané góly hostů:
 
 btn-follow = Sledovat
 btn-unfollow = Přestat sledovat

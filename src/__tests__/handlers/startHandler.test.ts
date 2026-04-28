@@ -15,12 +15,15 @@ vi.mock('@/services/dbService', () => ({
 }));
 
 describe('startHandler', () => {
-  let mockBot: { command: ReturnType<typeof vi.fn> };
+  let mockBot: { command: ReturnType<typeof vi.fn>; api: { setMyCommands: ReturnType<typeof vi.fn> } };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockBot = {
       command: vi.fn(),
+      api: {
+        setMyCommands: vi.fn().mockResolvedValue(undefined),
+      },
     };
   });
 
@@ -34,7 +37,7 @@ describe('startHandler', () => {
 
   it('should reply with welcome message when /start is called', async () => {
     registerStartHandler(mockBot as never);
-    const handler = mockBot.command.mock.calls[0][1];
+    const handler = mockBot.command.mock.calls[1][1];
 
     const t = createMockT();
     const ctx = {

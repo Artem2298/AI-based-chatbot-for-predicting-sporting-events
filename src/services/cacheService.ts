@@ -37,12 +37,4 @@ export class CacheService {
   delete(key: string): void {
     this.cache.delete(key);
   }
-
-  clear() {
-    this.cache.clear();
-  }
-
-  has(key: string): boolean {
-    return this.get(key) !== null;
-  }
 }

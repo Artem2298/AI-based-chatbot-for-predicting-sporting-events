@@ -42,7 +42,7 @@ export const config = {
     botToken: env.TELEGRAM_BOT_TOKEN,
   },
   gemini: {
-    apiKey: env.GEMINI_API_KEY || '',
+    apiKey: env.GEMINI_API_KEY,
     model: 'gemini-2.5-flash',
   },
   logLevel: env.LOG_LEVEL,

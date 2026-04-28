@@ -9,7 +9,6 @@ import { createLogger } from '@/utils/logger';
 
 const log = createLogger('match-service');
 
-/** Competition code → ID mapping for API filtering */
 const COMPETITION_IDS: Record<string, number> = {
   PL: 2021,
   BL1: 2002,
@@ -31,20 +30,18 @@ export class MatchService {
     dbCheckFn?: () => Promise<T | null>,
     dbSaveFn?: (data: T) => Promise<void>
   ): Promise<T> {
-    // 1. Check Memory Cache
     const cached = this.cache.get(key) as T;
     if (cached) {
       log.debug({ key }, 'memory cache hit');
       return cached;
     }
 
-    // 2. Check Database if function provided
     if (dbCheckFn) {
       try {
         const dbData = await withDbRetry(() => dbCheckFn(), `dbCheck:${key}`);
         if (dbData) {
           log.debug({ key }, 'database hit');
-          this.cache.set(key, dbData, ttl); // Update memory cache
+          this.cache.set(key, dbData, ttl);
           return dbData;
         }
       } catch (error) {
@@ -52,12 +49,10 @@ export class MatchService {
       }
     }
 
-    // 3. Fetch from API
     log.debug({ key }, 'fetching from API');
     try {
       const data = await fetchFn();
 
-      // Save to Database if function provided (non-blocking)
       if (dbSaveFn) {
         withDbRetry(() => dbSaveFn(data), `dbSave:${key}`).catch((err) => {
           log.warn({ key, err }, 'DB save failed');
@@ -137,7 +132,6 @@ export class MatchService {
   ): Promise<Match[]> {
     const cacheKey = `upcoming:${competitionCode}:${days}`;
 
-    // 1. Memory cache check (only if not forcing refresh)
     if (!forceRefresh) {
       const cached = this.cache.get(cacheKey) as Match[];
       if (cached) {
@@ -150,7 +144,6 @@ export class MatchService {
     const endDate = new Date();
     endDate.setDate(now.getDate() + days);
 
-    // 2. Database check (if not forcing refresh)
     if (!forceRefresh) {
       try {
         const dbMatches = await withDbRetry(
@@ -189,7 +182,6 @@ export class MatchService {
             competitionCode: m.competitionCode,
           }));
 
-          // Valid for 1 hour in memory
           this.cache.set(cacheKey, matches, 3600);
           return matches;
         }
@@ -198,7 +190,6 @@ export class MatchService {
       }
     }
 
-    // 3. API Fetch (Fallback or Forced)
     log.info({ key: cacheKey, forceRefresh }, 'fetching upcoming matches from API');
     const response = await this.footballApi.getUpcomingMatches(competitionCode);
 
@@ -228,7 +219,7 @@ export class MatchService {
                   status: match.status,
                   scoreHome: match.score.fullTime.home,
                   scoreAway: match.score.fullTime.away,
-                  utcDate: new Date(match.utcDate), // Ensure date is updated
+                  utcDate: new Date(match.utcDate),
                 },
                 create: {
                   id: match.id,
@@ -251,7 +242,6 @@ export class MatchService {
     }
 
     const matches = filtered.map(mapToMatch);
-    // Cache for 1 hour in memory
     this.cache.set(cacheKey, matches, 3600);
     return matches;
   }

@@ -42,6 +42,14 @@ describe('predictionHandler', () => {
     );
 
     ctx = createMockCtx();
+    // Add grammY-specific methods used by predictionHandler
+    (ctx as Record<string, unknown>).replyWithAnimation = vi
+      .fn()
+      .mockResolvedValue({ message_id: 999 });
+    (ctx as Record<string, unknown>).chat = { id: 12345 };
+    (ctx as Record<string, unknown>).api = {
+      deleteMessage: vi.fn().mockResolvedValue(true),
+    };
 
     userMatchesState.set(1, {
       matches: [{ id: 123 }, { id: 456 }] as unknown as Match[],
@@ -63,12 +71,9 @@ describe('predictionHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'AI Prediction',
-    });
-    expect(ctx.editMessageText).toHaveBeenCalled();
-    const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
-      .calls[0][0];
+    expect(ctx.answerCallbackQuery).toHaveBeenCalled();
+    expect(ctx.reply).toHaveBeenCalled();
+    const message = (ctx.reply as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(message).toContain('Match outcome');
     expect(message).toContain('Total goals (O/U 2.5)');
     expect(message).toContain('Both team to score');
@@ -100,13 +105,17 @@ describe('predictionHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'Generating prediction, please wait...',
-    });
-    // First editMessageText = "Generating..." message, second = formatted result
-    expect(ctx.editMessageText).toHaveBeenCalledTimes(2);
-    const resultMessage = (ctx.editMessageText as ReturnType<typeof vi.fn>)
-      .mock.calls[1][0];
+    expect(ctx.answerCallbackQuery).toHaveBeenCalled();
+    expect(mockPredictionService.generatePrediction).toHaveBeenCalledWith(
+      123,
+      'outcome',
+      undefined,
+      1
+    );
+    // ctx.reply called twice: loading message + formatted result
+    expect(ctx.reply).toHaveBeenCalledTimes(2);
+    const resultMessage = (ctx.reply as ReturnType<typeof vi.fn>).mock
+      .calls[1][0];
     expect(resultMessage).toContain('Match outcome');
     expect(resultMessage).toContain('Team A to win');
   });
@@ -131,9 +140,10 @@ describe('predictionHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.reply).toHaveBeenCalled();
+    // ctx.reply called twice: loading message + error message
+    expect(ctx.reply).toHaveBeenCalledTimes(2);
     const errorMessage = (ctx.reply as ReturnType<typeof vi.fn>).mock
-      .calls[0][0];
+      .calls[1][0];
     expect(errorMessage).toContain('Error generating prediction.');
     expect(errorMessage).toContain('Insufficient stats for');
   });

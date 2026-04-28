@@ -114,6 +114,9 @@ predict-expected-title = EXPECTED VALUES:
 predict-expected-total = - Total { $type }:
 predict-expected-yellow = - Yellow Cards:
 predict-expected-red = - Red Cards:
+predict-expected-goals = Expected total goals:
+predict-expected-home-goals = Expected home goals:
+predict-expected-away-goals = Expected away goals:
 
 btn-follow = Follow
 btn-unfollow = Unfollow

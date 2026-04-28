@@ -114,6 +114,9 @@ predict-expected-title = OCZEKIWANE WARTOŚCI:
 predict-expected-total = - Razem { $type }:
 predict-expected-yellow = - Żółte kartki:
 predict-expected-red = - Czerwone kartki:
+predict-expected-goals = Oczekiwana liczba goli:
+predict-expected-home-goals = Oczekiwane gole gospodarzy:
+predict-expected-away-goals = Oczekiwane gole gości:
 
 btn-follow = Obserwuj
 btn-unfollow = Przestań obserwować

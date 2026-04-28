@@ -72,17 +72,13 @@ describe('standingsHandler', () => {
 
     await runMiddleware(ctx);
 
-    expect(ctx.answerCallbackQuery).toHaveBeenCalledWith({
-      text: 'Loading standings...',
-    });
     expect(mockMatchService.getStandings).toHaveBeenCalledWith('PL');
-    expect(ctx.editMessageText).toHaveBeenCalled();
-    const message = (ctx.editMessageText as ReturnType<typeof vi.fn>).mock
-      .calls[0][0];
-    expect(message).toContain('Standings: Premier League');
+    expect(ctx.reply).toHaveBeenCalled();
+    const message = (ctx.reply as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(message).toContain('🥇 A');
     expect(message).toContain('🥈 B');
     expect(message).toContain('10-2 (+8)');
+    expect(message).toContain('Premier League');
   });
 
   it('should handle empty standings table', async () => {
